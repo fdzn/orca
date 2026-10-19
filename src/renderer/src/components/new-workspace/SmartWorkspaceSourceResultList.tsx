@@ -132,7 +132,7 @@ export function SmartWorkspaceSourceResultList({
             <p className="mt-0.5 text-muted-foreground">
               {translate(
                 'auto.components.new.workspace.SmartWorkspaceNameField.linearLoginUnreadableBody',
-                'Orca can’t read your saved Linear login. Reconnect it in Settings to search issues.'
+                'Unable to read saved Linear login. Reconnect it in Settings.'
               )}
             </p>
           </div>

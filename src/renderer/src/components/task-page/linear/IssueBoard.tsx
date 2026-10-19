@@ -53,10 +53,10 @@ export function TaskPageLinearIssueBoard({
           <p className="text-base font-medium text-foreground">
             {translate('auto.components.TaskPage.linearLoginUnreadableTitle', 'Reconnect Linear')}
           </p>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {translate(
               'auto.components.TaskPage.linearLoginUnreadableBody',
-              'Orca can’t read your saved Linear login. Reconnect it in Settings to see your issues.'
+              'Unable to read saved Linear login. Reconnect it in Settings.'
             )}
           </p>
         </div>

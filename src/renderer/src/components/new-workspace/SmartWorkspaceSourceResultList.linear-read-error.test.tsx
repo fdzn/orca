@@ -94,7 +94,7 @@ describe('composer Linear read errors', () => {
 
     await waitFor(() =>
       expect(screen.getByRole('status').textContent).toBe(
-        `${message}Orca can’t read your saved Linear login. Reconnect it in Settings to search issues.`
+        `${message}Unable to read saved Linear login. Reconnect it in Settings.`
       )
     )
 

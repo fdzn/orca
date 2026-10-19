@@ -64,7 +64,7 @@ export function LinearCollectionNotice({
               {isIntegrationCredentialDecryptionError(error.message)
                 ? translate(
                     'auto.components.linear.project.view.surfaces.linearLoginUnreadable',
-                    'Orca can’t read your saved Linear login. Reconnect it in Settings.'
+                    'Unable to read saved Linear login. Reconnect it in Settings.'
                   )
                 : error.message}
             </Badge>
