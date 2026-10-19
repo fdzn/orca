@@ -21,10 +21,10 @@ import {
 import type { OrcadManagedServing } from './orcad-managed-serving'
 import {
   dropActiveOrcadTunnel,
-  managedTunnelAccess,
   recordActiveOrcadTunnel,
   resolveManagedTunnelBinding,
   supersededTunnelError,
+  tunnelStillPaired,
   type ActiveOrcadTunnel
 } from './orcad-managed-tunnel-active'
 import { checkManagedTunnelServing, type OrcadTunnelServing } from './orcad-managed-tunnel-serving'
@@ -259,17 +259,10 @@ export class OrcadManagedTunnelManager {
     const managerGeneration = this.managerGeneration
     const ownershipGeneration = this.ownershipGenerations.get(environment.id) ?? 0
     const expected = { environmentId: environment.id, ...deployment }
-    const stillOwned = (): boolean => {
-      const currentEnvironment = resolveCurrent()
-      return (
-        this.managerGeneration === managerGeneration &&
-        (this.ownershipGenerations.get(environment.id) ?? 0) === ownershipGeneration &&
-        currentEnvironment?.runtimeId === environment.runtimeId &&
-        (currentEnvironment.pairingRevision ?? currentEnvironment.createdAt) ===
-          (environment.pairingRevision ?? environment.createdAt) &&
-        managedTunnelAccess(currentEnvironment, targetStore.getTarget(target.id), expected) !== null
-      )
-    }
+    const stillOwned = (): boolean =>
+      this.managerGeneration === managerGeneration &&
+      (this.ownershipGenerations.get(environment.id) ?? 0) === ownershipGeneration &&
+      tunnelStillPaired(resolveCurrent(), environment, targetStore.getTarget(target.id), expected)
     const connection = await connectionManager.connect(target)
     if (!stillOwned()) {
       throw supersededTunnelError()

@@ -54,6 +54,21 @@ export function managedTunnelAccess(
     : null
 }
 
+/** Whether `current` is still the pairing `environment` was read from, and still names this tunnel. */
+export function tunnelStillPaired(
+  current: KnownRuntimeEnvironment | null,
+  environment: KnownRuntimeEnvironment,
+  target: SshTarget | null | undefined,
+  expected: ManagedTunnelExpectation
+): boolean {
+  return (
+    current?.runtimeId === environment.runtimeId &&
+    (current.pairingRevision ?? current.createdAt) ===
+      (environment.pairingRevision ?? environment.createdAt) &&
+    managedTunnelAccess(current, target, expected) !== null
+  )
+}
+
 /** The SSH target and transport a managed environment's tunnel must use, or why it cannot. */
 export function resolveManagedTunnelBinding(
   environment: KnownRuntimeEnvironment,
