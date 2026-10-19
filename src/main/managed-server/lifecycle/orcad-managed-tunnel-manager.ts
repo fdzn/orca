@@ -20,7 +20,7 @@ import {
 } from './orcad-managed-tunnel-resume'
 import type { OrcadManagedServing } from './orcad-managed-serving'
 import {
-  activeOrcadTunnelIsCurrent,
+  activeTunnelMatches,
   dropActiveOrcadTunnel,
   managedTunnelAccess,
   recordActiveOrcadTunnel,
@@ -277,7 +277,7 @@ export class OrcadManagedTunnelManager {
     }
     const transportGeneration = connection.getConnectGeneration()
     const active = this.active.get(environment.id)
-    if (activeOrcadTunnelIsCurrent(active, connection, transportGeneration, target, deployment)) {
+    if (activeTunnelMatches(active, { connection, transportGeneration, target, deployment })) {
       return
     }
     const checks = await environmentForwardChecks(this.targeting, {

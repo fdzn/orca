@@ -86,24 +86,6 @@ export function resolveManagedTunnelBinding(
   return { deployment, targetStore, connectionManager, target }
 }
 
-/** The recorded tunnel already rides this transport to this deployment's ports. */
-export function activeOrcadTunnelIsCurrent(
-  active: ActiveOrcadTunnel | undefined,
-  connection: SshConnection,
-  transportGeneration: number,
-  target: SshTarget,
-  deployment: RuntimeSshTunnelLink
-): boolean {
-  return (
-    active?.connection === connection &&
-    active.transportGeneration === transportGeneration &&
-    active.targetId === target.id &&
-    active.sshTargetGeneration === target.generation &&
-    active.localPort === deployment.localPort &&
-    active.preferredPort === deployment.remotePort
-  )
-}
-
 /** Removes `entry`'s forward, and the record only if nothing replaced it meanwhile. */
 export async function dropActiveOrcadTunnel(
   active: Map<string, ActiveOrcadTunnel>,
@@ -115,6 +97,26 @@ export async function dropActiveOrcadTunnel(
   if (active.get(environmentId) === entry) {
     active.delete(environmentId)
   }
+}
+
+/** The recorded tunnel already rides this transport to this deployment, so a build can reuse it. */
+export function activeTunnelMatches(
+  active: ActiveOrcadTunnel | undefined,
+  current: {
+    connection: SshConnection
+    transportGeneration: number
+    target: SshTarget
+    deployment: RuntimeSshTunnelLink
+  }
+): boolean {
+  return (
+    active?.connection === current.connection &&
+    active.transportGeneration === current.transportGeneration &&
+    active.targetId === current.target.id &&
+    active.sshTargetGeneration === current.target.generation &&
+    active.localPort === current.deployment.localPort &&
+    active.preferredPort === current.deployment.remotePort
+  )
 }
 
 export function recordActiveOrcadTunnel(
