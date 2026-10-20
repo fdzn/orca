@@ -88,9 +88,28 @@ describe('reference URLs', () => {
       'issue',
       0,
       'https://jira.example:8443/jira/browse/STA-1234'
+    ],
+    [
+      'https://kerjan.example.com/ticket/omx-40?tab=history#c1',
+      'kerjan',
+      'issue',
+      0,
+      'https://kerjan.example.com/ticket/OMX-40'
+    ],
+    [
+      'http://localhost:8080/app/ticket/OMX-40/',
+      'kerjan',
+      'issue',
+      0,
+      'http://localhost:8080/app/ticket/OMX-40'
     ]
   ])('parses %s without provider calls', (input, provider, type, number, url) => {
-    expect(parseWorkspaceReferenceUrl(input)).toMatchObject({ provider, type, number, url })
+    expect(parseWorkspaceReferenceUrl(input)).toMatchObject({
+      provider,
+      type,
+      number,
+      url
+    })
     expect(parseWorkspaceReferenceUrl(input).origins).toBeUndefined()
   })
 
@@ -107,9 +126,21 @@ describe('reference URLs', () => {
     'https://github.com/acme/api/-/merge_requests/42',
     'https://github.com/browse/STA-1234',
     'https://unknown.example/acme/api/issues/42',
-    'https://linear.app/acme/issue/invalid'
+    'https://linear.app/acme/issue/invalid',
+    'https://github.com/ticket/OMX-40',
+    'https://kerjan.example.com/ticket/O-40'
   ])('rejects ambiguous or invalid input %s', (input) => {
     expect(() => parseWorkspaceReferenceUrl(input)).toThrow()
+  })
+
+  it('records the Kerjan ticket key as its identifier', () => {
+    expect(parseWorkspaceReferenceUrl('https://kerjan.example.com/ticket/omx-40')).toMatchObject({
+      identifier: 'OMX-40',
+      kerjanIdentifier: 'OMX-40'
+    })
+    expect(() =>
+      parseWorkspaceReferenceUrl('https://kerjan.example.com/ticket/OMX-40', 'jira')
+    ).toThrow()
   })
 
   it('accepts a known provider hint for self-hosted issue metadata', () => {
@@ -202,6 +233,29 @@ describe('reference identity', () => {
     )
   })
 
+  it('proves URL-less Kerjan entries from the stored site URL', () => {
+    const item: WorkspaceAttachment = {
+      provider: 'kerjan',
+      type: 'issue',
+      number: 0,
+      kerjanIdentifier: 'OMX-40',
+      taskSourceContext: {
+        kind: 'task-source',
+        provider: 'kerjan',
+        projectId: 'kerjan',
+        hostId: 'local',
+        providerIdentity: {
+          provider: 'kerjan',
+          siteUrl: 'https://kerjan.example.com/',
+          workspaceCode: 'OMX'
+        }
+      }
+    }
+    expect(getWorkspaceReferenceIdentity(item)).toBe(
+      identity('https://kerjan.example.com/ticket/omx-40')
+    )
+  })
+
   it('retains source boundaries in legacy opaque keys', () => {
     const item: WorkspaceAttachment = {
       provider: 'github',
@@ -231,7 +285,8 @@ describe('reference queries', () => {
     for (const url of [
       'https://linear.app/acme/issue/STA-1234',
       'https://linear.app/other/issue/STA-1234',
-      'https://jira.example/browse/STA-1234'
+      'https://jira.example/browse/STA-1234',
+      'https://kerjan.example.com/ticket/STA-1234'
     ]) {
       expect(matchesWorkspaceReferenceQuery(parseWorkspaceReferenceUrl(url), query)).toBe(true)
     }

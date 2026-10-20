@@ -116,6 +116,9 @@ Use `task-create` plus `worker-start --task <task_id>` for planned fan-out with
 dependencies or a retry of a known Task. Use dependencies only for real ordering
 and prefer parallel waves over chains deeper than three or four steps; nested
 workers obey the depth limit, and a new Run does not reset the caller's depth.
+To build a Task from a Kerjan ticket, pass `task-create --kerjan <key|url>`: the
+title becomes `KEY: title` and the spec appends the ticket URL, status, and
+description (with acceptance criteria) after any `--spec` text.
 
 A consuming `check` names its caller with `--terminal <handle>`, never `--from`;
 omit it inside the coordinator's own Orca terminal. It returns the bound Run's

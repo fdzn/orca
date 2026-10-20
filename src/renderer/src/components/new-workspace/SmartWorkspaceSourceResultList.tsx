@@ -24,6 +24,8 @@ export function SmartWorkspaceSourceResultList({
     | 'setMrStateFilter'
     | 'typedTextActionRow'
     | 'jiraSource'
+    | 'kerjanSource'
+    | 'taskUrlSourceIntent'
     | 'loading'
     | 'searchResultRows'
     | 'linearStatusChecked'
@@ -96,7 +98,8 @@ export function SmartWorkspaceSourceResultList({
             </CommandItem>
           </div>
         ) : null}
-        {jiraSource.errorKind ? null : reserveLinearLoadingResults ? (
+        {jiraSource.errorKind ||
+        model.kerjanSource.errorKind ? null : reserveLinearLoadingResults ? (
           <div
             aria-hidden="true"
             className={cn('space-y-1 p-1', !showLinearUrlLoadingFeedback && 'invisible')}
@@ -119,7 +122,7 @@ export function SmartWorkspaceSourceResultList({
           </div>
         ) : searchResultRows.length === 0 && !typedTextActionRow ? (
           <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-            {jiraSource.intent
+            {model.taskUrlSourceIntent
               ? null
               : mode === 'linear' && linearStatusChecked && !linearStatus.connected
                 ? translate(

@@ -57,6 +57,9 @@ export function createUiTaskActions(set: UISliceSet, get: UISliceGet): Partial<U
       if (data.openJiraIssue) {
         get().recordFeatureInteraction?.('jira-tasks')
       }
+      if (data.openKerjanIssue) {
+        get().recordFeatureInteraction?.('kerjan-tasks')
+      }
       // Why: record a Tasks visit in shared back/forward history; all task-source variants collapse to one deduped 'tasks' entry.
       const detailEntry = data.openGitHubWorkItem
         ? ({
@@ -87,7 +90,14 @@ export function createUiTaskActions(set: UISliceSet, get: UISliceGet): Partial<U
                   issue: data.openJiraIssue,
                   sourceContext: data.openJiraSourceContext
                 } as const)
-              : null
+              : data.openKerjanIssue
+                ? ({
+                    kind: 'task-detail',
+                    source: 'kerjan',
+                    issue: data.openKerjanIssue,
+                    sourceContext: data.openKerjanSourceContext
+                  } as const)
+                : null
       const currentEntry = get().worktreeNavHistory[get().worktreeNavHistoryIndex]
       const currentIsTaskStack =
         currentEntry === 'tasks' ||

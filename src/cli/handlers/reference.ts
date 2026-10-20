@@ -108,7 +108,7 @@ async function mutateReferences(context: HandlerContext, operation: 'add' | 'rem
         : 'Pass at least one full URL or --key.'
     )
   }
-  await assertReferenceWritesSupported(client)
+  await assertReferenceWritesSupported(client, operation === 'add' ? input : [])
   const before = await callReference<RuntimeReferenceListResult>(client, 'reference.list', target)
   const workspace = before.result.worktree
   const workspaceSelector = workspace.identity

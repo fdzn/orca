@@ -34,6 +34,7 @@ type IssueSourceActionsInput = Pick<
 import { useCallback, useMemo } from 'react'
 import type { LinearIssue } from '../../../../shared/linear/issue-types'
 import type { JiraIssue } from '../../../../shared/jira-types'
+import type { KerjanIssue } from '../../../../shared/kerjan-types'
 import {
   toLinearLinkedWorkItem,
   getLinkedItemDisplayName,
@@ -52,6 +53,7 @@ import {
 } from '@/lib/new-workspace'
 import {
   buildJiraWorkspaceSource,
+  buildKerjanWorkspaceSource,
   buildWorkspaceSourceSelection,
   shouldApplyWorkspaceSourceAutoName
 } from '../../../../shared/new-workspace/workspace-source'
@@ -162,10 +164,10 @@ export function useIssueSourceActions(input: IssueSourceActionsInput) {
     ]
   )
 
-  const handleSmartJiraIssueSelect = useCallback(
-    (issue: JiraIssue, sourceContext: TaskSourceContext): void => {
+  // Why: Jira and Kerjan picks differ only in the linked item; the lookup-race naming rule is shared.
+  const selectSmartTaskItem = useCallback(
+    (linkedItem: LinkedWorkItemSummary, sourceContext: TaskSourceContext): void => {
       smartSourceSelectionRef.current = null
-      const linkedItem: LinkedWorkItemSummary = buildJiraWorkspaceSource(issue)
       setLinkedIssue('')
       setLinkedPR(null)
       setLinkedGitLabIssue(null)
@@ -184,7 +186,7 @@ export function useIssueSourceActions(input: IssueSourceActionsInput) {
       const suggestedName =
         getLinkedWorkItemWorkspaceName(linkedItem, getJiraIssueKeyCasingSeedOptions())?.seedName ??
         getLinkedWorkItemSuggestedName(linkedItem)
-      // Why: the Jira lookup is async, so a name the user typed while it resolved must survive.
+      // Why: the lookup is async, so a name the user typed while it resolved must survive.
       if (
         suggestedName &&
         shouldApplyWorkspaceSourceAutoName({
@@ -218,6 +220,17 @@ export function useIssueSourceActions(input: IssueSourceActionsInput) {
       setPushTarget,
       smartSourceSelectionRef
     ]
+  )
+
+  const handleSmartJiraIssueSelect = useCallback(
+    (issue: JiraIssue, sourceContext: TaskSourceContext): void =>
+      selectSmartTaskItem(buildJiraWorkspaceSource(issue), sourceContext),
+    [selectSmartTaskItem]
+  )
+  const handleSmartKerjanIssueSelect = useCallback(
+    (issue: KerjanIssue, sourceContext: TaskSourceContext): void =>
+      selectSmartTaskItem(buildKerjanWorkspaceSource(issue), sourceContext),
+    [selectSmartTaskItem]
   )
 
   const handleClearSmartNameSelection = useCallback((): void => {
@@ -290,6 +303,7 @@ export function useIssueSourceActions(input: IssueSourceActionsInput) {
   return {
     handleSmartLinearIssueSelect,
     handleSmartJiraIssueSelect,
+    handleSmartKerjanIssueSelect,
     handleClearSmartNameSelection,
     smartNameSelection
   }

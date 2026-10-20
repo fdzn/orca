@@ -783,6 +783,9 @@
               }
             }
           }
+        },
+        "kerjan": {
+          "connectSuperseded": "Kerjan connection was superseded by a newer request."
         }
       }
     },
@@ -1265,6 +1268,10 @@
         "preparingWorkspace": "Preparing workspace…",
         "creatingWorktree": "Creating worktree…",
         "fetchingBaseBranch": "Fetching base branch…"
+      },
+      "kerjanTicketWorkspaceOpen": {
+        "sourceUnavailable": "Couldn’t link this Kerjan ticket. Reconnect Kerjan, then try again.",
+        "openFailed": "Unable to open the workspace linked to this Kerjan ticket."
       }
     },
     "hooks": {
@@ -2595,7 +2602,8 @@
         "linearEmptyHasWorktree": "No Linear tickets are linked to an Orca workspace yet. Start work from a Linear issue to see it here.",
         "linearOpenAttachedWorkspace": "Open workspace attached to {{value0}}",
         "linearWorktreesColumn": "Workspaces",
-        "jiraBoardEmptyColumn": "No issues"
+        "jiraBoardEmptyColumn": "No issues",
+        "kerjanSource": "Kerjan"
       },
       "Terminal": {
         "73768427cf": "Close",
@@ -6062,7 +6070,8 @@
           "cliCreated": "Created by Orca CLI",
           "jiraIssue": "Jira {{value0}}",
           "viewOnJira": "View on Jira",
-          "linkedJira": "Linked Jira {{value0}}"
+          "linkedJira": "Linked Jira {{value0}}",
+          "linkedKerjan": "Linked Kerjan {{value0}}"
         },
         "WorktreeCardMetadataStatusBadges": {
           "fe188062a1": "State: Open",
@@ -9087,7 +9096,13 @@
           "integrationsHint": "Credentials for all providers also live under",
           "integrationsLink": "Integrations",
           "skillHint": ". After Linear is connected, usage examples stay under Settings → Linear.",
-          "incompleteBannerBodyWithLinear": "Hide providers you do not use, or expand a card and finish its steps. For Linear: API access, the agent skill, and Show in Tasks."
+          "incompleteBannerBodyWithLinear": "Hide providers you do not use, or expand a card and finish its steps. For Linear: API access, the agent skill, and Show in Tasks.",
+          "kerjanLabel": "Kerjan",
+          "connectKerjanTitle": "Connect Kerjan",
+          "connectKerjanDescription": "Add your Kerjan site URL and a personal token from your Kerjan profile.",
+          "addKerjan": "Add Kerjan access",
+          "manageKerjan": "Manage token",
+          "kerjanDescription": "Connect a Kerjan site and show its tickets in Tasks."
         },
         "TerminalAppearanceSection": {
           "a14a427ae4": "Thickness of the pane divider line.",
@@ -10473,7 +10488,11 @@
             "7166b9090c": "GitHub authentication via the gh CLI.",
             "f16e41cc72": "GitHub Integration",
             "760e2446e0": "Bitbucket Cloud authentication with a saved API token or environment variables.",
-            "af5ae87847": "access token"
+            "af5ae87847": "access token",
+            "kerjanTitle": "Kerjan Integration",
+            "kerjanDescription": "Connect a Kerjan site or replace an expired Kerjan personal token.",
+            "kerjan": "kerjan",
+            "personalToken": "personal token"
           }
         },
         "jira": {
@@ -10988,7 +11007,8 @@
             "setup": "setup",
             "apiKey": "api key",
             "skill": "skill",
-            "connect": "connect"
+            "connect": "connect",
+            "kerjan": "kerjan"
           }
         },
         "terminal": {
@@ -12952,6 +12972,35 @@
           "submit": "Re-pair",
           "success": "Re-paired with {{name}}",
           "failed": "Re-pair failed"
+        },
+        "kerjan": {
+          "integration": {
+            "card": {
+              "credentialCopyRemote": "Connect with your Kerjan site URL and a personal token. The token is sent to the selected remote runtime and stored there with runtime-supported encryption.",
+              "credentialCopyLocal": "Connect with your Kerjan site URL and a personal token. The token is stored locally and encrypted when local runtime storage supports it.",
+              "disconnectFailed": "Could not remove the saved Kerjan token.",
+              "reconnect": "Reconnect",
+              "replaceToken": "Replace token",
+              "connect": "Connect Kerjan",
+              "connectedTo": "Connected to {{site}}",
+              "checking": "Checking Kerjan access before showing setup actions.",
+              "description": "Browse Kerjan tickets, update Tasks, and start work from them.",
+              "statusReconnect": "Reconnect needed",
+              "statusConnected": "Connected",
+              "statusNotConnected": "Not connected",
+              "tokenName": "Your Kerjan personal token",
+              "accountScopePrefix": "Account scope",
+              "unknownMember": "Kerjan member",
+              "verified": "Verified",
+              "testing": "Testing...",
+              "testConnection": "Test connection",
+              "disconnect": "Disconnect Kerjan",
+              "credentialError": "Orca could not read the saved token ({{error}}). Reconnect to save a new one.",
+              "tokenRejected": "Kerjan rejected the saved token, so Orca removed it. Tokens expire after 90 days; create a new one in Kerjan and reconnect.",
+              "recheck": "Re-check",
+              "expiryNoteRemoved": "Personal tokens expire after 90 days. When Kerjan rejects the token, Orca removes it; connect again with a new one."
+            }
+          }
         }
       },
       "right": {
@@ -14584,7 +14633,8 @@
           "a3bcf13694": "connected",
           "d6e5dba05a": "Sign in",
           "0b4a7d23ab": "Signing in",
-          "a74c6d6b18": "not-installed"
+          "a74c6d6b18": "not-installed",
+          "moreTaskSourcesWithKerjan": "Linear, GitLab, Bitbucket, Azure DevOps, Gitea, Jira, and Kerjan live in Settings > Integrations."
         },
         "NotificationStep": {
           "3bede04483": "Send test notification",
@@ -14779,7 +14829,15 @@
             "jiraMode": "Jira",
             "jiraSelectBindFailed": "Couldn’t link this Jira issue. Pick the matching site or reconnect Jira, then try again.",
             "emoji": "Emoji",
-            "loadingLinearIssue": "Loading Linear issue…"
+            "loadingLinearIssue": "Loading Linear issue…",
+            "loadingKerjan": "Loading Kerjan ticket…",
+            "kerjanDisconnected": "Connect Kerjan in Settings to link this ticket",
+            "kerjanSiteNotConnected": "This Kerjan site is not the connected one",
+            "kerjanRuntimeUpdate": "Update the remote runtime to link Kerjan",
+            "kerjanReadFailed": "Couldn’t load this Kerjan ticket",
+            "kerjanLoaded": "Kerjan ticket loaded",
+            "retryKerjan": "Retry",
+            "kerjanSelectBindFailed": "Couldn’t link this Kerjan ticket. Reconnect Kerjan, then try again."
           },
           "ProjectCombobox": {
             "empty": "No projects match your search.",
@@ -15459,7 +15517,8 @@
             "code_host_tasks_caption": "Your code host's issues also work as tasks.",
             "review_step_title": "See PR status while agents work",
             "review_step_description": "Connect a review provider so Orca can show PR or MR status, checks, and reviews.",
-            "task_step_title": "Start agents on your tasks without leaving Orca"
+            "task_step_title": "Start agents on your tasks without leaving Orca",
+            "code_host_tasks_summary_with_kerjan": "issues available as tasks · add Linear, Jira, or Kerjan if your team plans work there"
           },
           "connect": {
             "integration": {
@@ -18184,6 +18243,128 @@
         "copyFailed": "Could not copy the link.",
         "signingIn": "Signing in…",
         "cancel": "Cancel"
+      },
+      "kerjan": {
+        "connect": {
+          "credential": {
+            "guide": {
+              "title": "Create a personal token",
+              "openSite": "Open Kerjan",
+              "profileStepAfterLink": "and go to Account, then Your tokens.",
+              "profileStep": "In Kerjan, open Account, then Your tokens.",
+              "createStep": "Create a personal token. Kerjan asks for the code from your authenticator app.",
+              "pasteStep": "Copy the token (it starts with kjt_) and paste it here. It expires after 90 days."
+            }
+          },
+          "dialog": {
+            "storageRemote": "Your token is sent to the selected remote runtime and stored there with runtime-supported encryption.",
+            "storageLocal": "Your token is stored locally and encrypted when local runtime storage supports it.",
+            "connectFailed": "Connection failed",
+            "title": "Connect Kerjan",
+            "description": "Use your Kerjan site URL and a personal token to browse tickets and update Tasks.",
+            "baseUrlLabel": "Kerjan site URL",
+            "baseUrlPlaceholder": "https://kerjan.example.com",
+            "baseUrlInvalid": "Enter a URL that starts with http:// or https://, without a query or #.",
+            "tokenLabel": "Personal token",
+            "tokenPlaceholder": "kjt_…",
+            "cancel": "Cancel",
+            "verifying": "Verifying…",
+            "connect": "Connect"
+          }
+        }
+      },
+      "KerjanTickets": {
+        "kindEpic": "Epic",
+        "kindStory": "Story",
+        "kindTask": "Task",
+        "statusTodo": "To Do",
+        "statusInProgress": "In Progress",
+        "statusReadyForQa": "Ready for QA",
+        "statusTesting": "Testing",
+        "statusDone": "Done",
+        "statusCanceled": "Canceled",
+        "taskTypeDev": "Dev",
+        "taskTypeQa": "QA",
+        "taskTypeBug": "Bug"
+      },
+      "TaskPageKerjan": {
+        "reconnectTitle": "Reconnect Kerjan",
+        "connectTitle": "Connect your Kerjan site",
+        "connectBody": "Browse, update, and start work from Kerjan tickets directly from here.",
+        "connect": "Connect Kerjan",
+        "hide": "Hide Kerjan",
+        "heading": "{{value0}} tickets",
+        "headingNoWorkspace": "Kerjan tickets",
+        "shown": "{{value0}} shown",
+        "workspacesFailed": "Couldn’t load Kerjan workspaces",
+        "noWorkspaces": "No Kerjan workspaces",
+        "noWorkspacesBody": "Ask a Kerjan admin to add you to a workspace, then refresh.",
+        "ticketsFailed": "Couldn’t load Kerjan tickets",
+        "empty": "No Kerjan tickets found",
+        "emptyFiltered": "Try different filters or search terms.",
+        "emptyWorkspace": "This workspace has no tickets yet.",
+        "me": "Me",
+        "workspace": "Kerjan workspace",
+        "noWorkspace": "No Kerjan workspace",
+        "readOnly": "Read-only",
+        "readOnlyTooltip": "Synced from Jira project {{value0}}; edits are blocked until cutover.",
+        "kind": "Kind",
+        "allKinds": "All kinds",
+        "status": "Status",
+        "allStatuses": "All statuses",
+        "taskType": "Task type",
+        "allTaskTypes": "All task types",
+        "sprint": "Sprint",
+        "allSprints": "All sprints",
+        "assignee": "Assignee",
+        "anyone": "Anyone",
+        "search": "Search key, title, or description",
+        "searchLabel": "Search tickets",
+        "clearFilters": "Clear",
+        "refresh": "Refresh tickets",
+        "openWorkspace": "Open workspace",
+        "startWorkspace": "Start workspace",
+        "unassigned": "Unassigned",
+        "columnKey": "Key",
+        "columnTitle": "Title",
+        "columnType": "Type"
+      },
+      "KerjanTicketSheet": {
+        "statusDerived": "Status is derived from this ticket’s Tasks.",
+        "status": "Status",
+        "moveTo": "Move to…",
+        "assignee": "Assignee",
+        "unassigned": "Unassigned",
+        "searchMembers": "Search members…",
+        "noMembers": "No members found.",
+        "assignToMe": "Assign to me",
+        "commentPlaceholder": "Add a Kerjan comment…",
+        "commentLabel": "Comment",
+        "comment": "Comment",
+        "sheetTitle": "Kerjan ticket",
+        "sheetDescription": "Preview, update, and start work from the selected Kerjan ticket.",
+        "startWorkspace": "Start workspace",
+        "openInKerjan": "Open in Kerjan",
+        "close": "Close Kerjan ticket preview",
+        "closeShort": "Close",
+        "readOnly": "This workspace is synced from Jira project {{value0}} and is read-only until cutover.",
+        "retry": "Retry",
+        "dismiss": "Dismiss",
+        "title": "Title",
+        "description": "Description",
+        "cancel": "Cancel",
+        "save": "Save",
+        "epic": "Epic",
+        "story": "Story",
+        "edit": "Edit",
+        "noDescription": "No description provided.",
+        "stories": "Stories",
+        "tasks": "Tasks",
+        "comments": "Comments",
+        "unknown": "Unknown",
+        "noComments": "No comments yet.",
+        "history": "History",
+        "changed": "changed the ticket"
       }
     },
     "i18n": {

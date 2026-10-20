@@ -347,6 +347,18 @@ import {
 import { JiraQuickFilterStateParam } from './jira-quick-filter-params'
 import { JiraSavedFilterMutationParam } from './jira-saved-filter-params'
 import {
+  KerjanAddComment,
+  KerjanConnect,
+  KerjanListIssues,
+  KerjanOptionalWorkspaceScope,
+  KerjanSearchIssues,
+  KerjanSetAssignee,
+  KerjanSetStatus,
+  KerjanTicketKey,
+  KerjanUpdateIssue,
+  KerjanWorkspaceScope
+} from './kerjan-params'
+import {
   AgentIssueContext,
   AgentSearchIssues,
   LinearCommentDelete,
@@ -1063,6 +1075,21 @@ export const RPC_PARAMS_BY_METHOD = {
   'jira.status': null,
   'jira.testConnection': SiteSelection,
   'jira.updateIssue': IssueUpdate,
+  'kerjan.addComment': KerjanAddComment,
+  'kerjan.connect': KerjanConnect,
+  'kerjan.disconnect': null,
+  'kerjan.getIssue': KerjanTicketKey,
+  'kerjan.listIssues': KerjanListIssues,
+  'kerjan.listMembers': KerjanOptionalWorkspaceScope,
+  'kerjan.listProducts': KerjanWorkspaceScope,
+  'kerjan.listSprints': KerjanWorkspaceScope,
+  'kerjan.listWorkspaces': null,
+  'kerjan.searchIssues': KerjanSearchIssues,
+  'kerjan.setAssignee': KerjanSetAssignee,
+  'kerjan.setStatus': KerjanSetStatus,
+  'kerjan.status': null,
+  'kerjan.testConnection': null,
+  'kerjan.updateIssue': KerjanUpdateIssue,
   'layout.apply': LayoutApplyParams,
   'layout.getRemoteSnapshots': null,
   'layout.subscribe': LayoutSubscribeParams,

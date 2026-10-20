@@ -9,6 +9,7 @@ import {
 } from '../../../src/shared/task-providers'
 import type { RpcClient } from '../transport/rpc-client'
 import { homeHostAccountsRead, homeHostStatsRead } from './mobile-home-host-operations'
+import { mobileSupportedTaskProviders } from '../tasks/mobile-supported-task-providers'
 
 type HomeTaskSettings = {
   visibleTaskProviders?: unknown
@@ -86,7 +87,7 @@ export function fetchMobileHomeTaskProviders(
       const linearResult = taskLinearStatusRead.interpret(linearResponse)
       const linear = linearResult.accepted ? linearResult.value : null
       const providers = filterAvailableTaskProviders(
-        normalizeVisibleTaskProviders(settings.visibleTaskProviders),
+        mobileSupportedTaskProviders(normalizeVisibleTaskProviders(settings.visibleTaskProviders)),
         {
           gitlabInstalled: preflight?.glab?.installed === true,
           linearConnected: linear?.connected === true

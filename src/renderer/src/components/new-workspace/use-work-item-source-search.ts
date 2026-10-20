@@ -68,19 +68,19 @@ export function useWorkItemSourceSearch({
   const shouldQueryGithub =
     sourceQueryWithinLimit &&
     !repoBackedSourcesDisabled &&
-    !foundation.jiraSource.intent &&
+    !foundation.taskUrlSourceIntent &&
     !linearUrlIntentOwnsInput &&
     !textOnly &&
     foundation.repoBackedSearchTargets.length > 0 &&
     (foundation.mode === 'smart' || foundation.mode === 'github')
   const shouldQueryLinear =
     linearQueryWithinLimit &&
-    !foundation.jiraSource.intent &&
+    !foundation.taskUrlSourceIntent &&
     !textOnly &&
     foundation.linearAvailable &&
     (foundation.mode === 'smart' || foundation.mode === 'linear')
   const jiraSearchQuery =
-    foundation.mode === 'jira' && !foundation.jiraSource.intent && sourceQueryWithinLimit
+    foundation.mode === 'jira' && !foundation.taskUrlSourceIntent && sourceQueryWithinLimit
       ? getJiraIssueSearchQuery(foundation.debouncedQuery)
       : null
   const shouldQueryJira =
@@ -107,7 +107,7 @@ export function useWorkItemSourceSearch({
   const shouldQueryGitlab =
     sourceQueryWithinLimit &&
     !repoBackedSourcesDisabled &&
-    !foundation.jiraSource.intent &&
+    !foundation.taskUrlSourceIntent &&
     !linearUrlIntentOwnsInput &&
     !textOnly &&
     foundation.gitlabSourceAvailable &&
@@ -131,7 +131,8 @@ export function useWorkItemSourceSearch({
           github: foundation.githubSourceContext,
           gitlab: foundation.gitlabSourceContext ?? null,
           linear: foundation.linearSourceContext,
-          jira: foundation.jiraSource.boundSourceContext ?? foundation.jiraSourceContext
+          jira: foundation.jiraSource.boundSourceContext ?? foundation.jiraSourceContext,
+          kerjan: foundation.kerjanSource.boundSourceContext
         },
         foundation.jiraConnectionStatus?.sites
       ),
@@ -141,6 +142,7 @@ export function useWorkItemSourceSearch({
       foundation.linearSourceContext,
       foundation.jiraSource.boundSourceContext,
       foundation.jiraSourceContext,
+      foundation.kerjanSource.boundSourceContext,
       foundation.jiraConnectionStatus?.sites
     ]
   )

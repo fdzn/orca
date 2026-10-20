@@ -6,6 +6,7 @@ import { useAppStore } from '@/store'
 import { useShallow } from 'zustand/react/shallow'
 import { findTaskPageLinearIssue } from '@/components/task-page-cache-selectors'
 import { findTaskPageJiraIssue } from '@/components/task-page-jira-cache-selectors'
+import { useTaskPageKerjanDetailRouting } from './use-task-page-kerjan-detail-routing'
 export function useTaskPageDetailRouting(model: TaskPageGitHubIssueDraftModel) {
   const {
     pageData,
@@ -119,7 +120,9 @@ export function useTaskPageDetailRouting(model: TaskPageGitHubIssueDraftModel) {
         openLinearIssue: undefined,
         openLinearSourceContext: undefined,
         openJiraIssue: undefined,
-        openJiraSourceContext: undefined
+        openJiraSourceContext: undefined,
+        openKerjanIssue: undefined,
+        openKerjanSourceContext: undefined
       }
     }))
   }, [clearSelectedLinearIssue, setDialogWorkItem])
@@ -236,6 +239,6 @@ export function useTaskPageDetailRouting(model: TaskPageGitHubIssueDraftModel) {
   nextModel.jiraDetailSourceContext = jiraDetailSourceContext
   nextModel.setSelectedJiraIssue = setSelectedJiraIssue
   nextModel.openJiraDetailPage = openJiraDetailPage
-  return nextModel
+  return useTaskPageKerjanDetailRouting(nextModel)
 }
 export type TaskPageDetailRoutingModel = ReturnType<typeof useTaskPageDetailRouting>

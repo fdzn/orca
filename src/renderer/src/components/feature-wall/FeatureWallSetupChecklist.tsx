@@ -235,6 +235,7 @@ function TaskSourcesAction(): React.JSX.Element {
   const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
   const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
   const checkLinearConnection = useAppStore((s) => s.checkLinearConnection)
+  const checkKerjanConnection = useAppStore((s) => s.checkKerjanConnection)
   const settings = useAppStore((s) => s.settings)
   const providerRuntimeContextKey = getProviderRuntimeContextKey(settings)
 
@@ -242,10 +243,12 @@ function TaskSourcesAction(): React.JSX.Element {
     void refreshPreflightStatus()
     void checkJiraConnection()
     void checkLinearConnection()
+    void checkKerjanConnection()
   }, [
     refreshPreflightStatus,
     checkJiraConnection,
     checkLinearConnection,
+    checkKerjanConnection,
     providerRuntimeContextKey
   ])
 

@@ -4,6 +4,8 @@ import { getProviderRuntimeContextKey } from '@/lib/provider-runtime-context'
 
 export type IntegrationStepState = 'active' | 'done' | 'upcoming'
 
+type TrackerProviderName = 'Linear' | 'Jira' | 'Kerjan'
+
 // Pure derivation of the two-step flow's step states from connection facts,
 // extracted so the progressive logic is testable without the store or DOM.
 // `codeHostTaskConnected` means a connected code host whose issues double as
@@ -28,7 +30,7 @@ export function deriveIntegrationStepStates(input: {
 
 export function deriveIntegrationFlowState(input: {
   reviewConnected: boolean
-  trackerProviderName: 'Linear' | 'Jira' | null
+  trackerProviderName: TrackerProviderName | null
   codeHostTaskProviderName: 'GitHub' | 'GitLab' | null
   trackerChecking: boolean
 }): {
@@ -89,6 +91,9 @@ type ProviderStatusFacts = {
   jiraStatus: { connected?: boolean }
   jiraStatusChecked: boolean
   jiraStatusContextKey: string | null
+  kerjanStatus: { connected?: boolean }
+  kerjanStatusChecked: boolean
+  kerjanStatusContextKey: string | null
   providerRuntimeContextKey: string
 }
 
@@ -100,14 +105,14 @@ export type IntegrationConnectionStatus = {
   // GitHub/GitLab issues can double as tasks; token/env review providers do not.
   codeHostTaskProviderName: 'GitHub' | 'GitLab' | null
   // True once any task source is usable: a code host (its issues double as a
-  // task source) or a dedicated tracker (Linear/Jira).
+  // task source) or a dedicated tracker (Linear/Jira/Kerjan).
   trackerConnected: boolean
   // Display name of the connected tracker, or null. Code hosts are surfaced
-  // via reviewProviderName, so this only names Linear/Jira.
-  trackerProviderName: 'Linear' | 'Jira' | null
+  // via reviewProviderName, so this only names Linear/Jira/Kerjan.
+  trackerProviderName: TrackerProviderName | null
   // Every connected task source, trackers first, for "Linear and GitHub
   // connected for tasks" summaries that don't under-report what's usable.
-  taskSourceNames: ('Linear' | 'Jira' | 'GitHub' | 'GitLab')[]
+  taskSourceNames: (TrackerProviderName | 'GitHub' | 'GitLab')[]
   // True while the code-host check is unresolved, stale, loading, or errored.
   reviewChecking: boolean
   // True while either dedicated tracker check is unresolved or stale.
@@ -171,6 +176,9 @@ export function deriveIntegrationConnectionStatus(
   const linearConnected =
     !linearChecking && linearStatusCurrent && facts.linearStatus.connected === true
   const jiraConnected = !jiraChecking && jiraStatusCurrent && facts.jiraStatus.connected === true
+  const kerjanChecking =
+    facts.kerjanStatusContextKey !== facts.providerRuntimeContextKey || !facts.kerjanStatusChecked
+  const kerjanConnected = !kerjanChecking && facts.kerjanStatus.connected === true
 
   const reviewProviderName = githubConnected
     ? 'GitHub'
@@ -184,10 +192,17 @@ export function deriveIntegrationConnectionStatus(
             ? 'Gitea'
             : null
   const codeHostTaskProviderName = githubConnected ? 'GitHub' : gitlabConnected ? 'GitLab' : null
-  const trackerProviderName = linearConnected ? 'Linear' : jiraConnected ? 'Jira' : null
+  const trackerProviderName = linearConnected
+    ? 'Linear'
+    : jiraConnected
+      ? 'Jira'
+      : kerjanConnected
+        ? 'Kerjan'
+        : null
   const taskSourceNames: IntegrationConnectionStatus['taskSourceNames'] = [
     ...(linearConnected ? (['Linear'] as const) : []),
     ...(jiraConnected ? (['Jira'] as const) : []),
+    ...(kerjanConnected ? (['Kerjan'] as const) : []),
     ...(githubConnected ? (['GitHub'] as const) : []),
     ...(gitlabConnected ? (['GitLab'] as const) : [])
   ]
@@ -195,7 +210,8 @@ export function deriveIntegrationConnectionStatus(
   // Why: one resolved task source is enough for parent setup readiness, but the
   // local "use code host issues" acknowledgement waits until tracker checks
   // settle so the banner uses the right completion reason.
-  const trackerChecking = trackerProviderName === null && (linearChecking || jiraChecking)
+  const trackerChecking =
+    trackerProviderName === null && (linearChecking || jiraChecking || kerjanChecking)
 
   return {
     reviewConnected:
@@ -230,6 +246,9 @@ export function useIntegrationConnectionStatus(): IntegrationConnectionStatus {
   const jiraStatus = useAppStore((s) => s.jiraStatus)
   const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
   const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)
+  const kerjanStatus = useAppStore((s) => s.kerjanStatus)
+  const kerjanStatusChecked = useAppStore((s) => s.kerjanStatusChecked)
+  const kerjanStatusContextKey = useAppStore((s) => s.kerjanStatusContextKey)
   const settings = useAppStore((s) => s.settings)
   const expectedPreflightContextKey = useAppStore((s) =>
     localPreflightContextKey(getLocalPreflightContext(s))
@@ -250,6 +269,9 @@ export function useIntegrationConnectionStatus(): IntegrationConnectionStatus {
     jiraStatus,
     jiraStatusChecked,
     jiraStatusContextKey,
+    kerjanStatus,
+    kerjanStatusChecked,
+    kerjanStatusContextKey,
     providerRuntimeContextKey
   })
 }

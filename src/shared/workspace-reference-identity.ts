@@ -1,4 +1,5 @@
 import { parseJiraIssueUrl, JIRA_ISSUE_KEY_PATTERN } from './jira-issue-url'
+import { buildKerjanTicketUrl, parseKerjanTicketUrl } from './kerjan-ticket-url'
 import { parseLinearIssueInput, parseLinearIssueUrlIntent } from './linear/links'
 import { getTaskSourceCacheScope } from './task-source-context'
 import type { WorkspaceAttachment } from './worktree/types'
@@ -107,6 +108,19 @@ function parseReferenceRoute(
       url: url.href
     }
   }
+  // Why: Kerjan is self-hosted, so its /ticket/KEY route is the only provider signal.
+  const kerjan = !providerHint || providerHint === 'kerjan' ? parseKerjanTicketUrl(url.href) : null
+  if (kerjan) {
+    url.pathname = `${kerjan.basePath}/ticket/${kerjan.ticketKey}`
+    return {
+      provider: 'kerjan',
+      type: 'issue',
+      number: 0,
+      identifier: kerjan.ticketKey,
+      kerjanIdentifier: kerjan.ticketKey,
+      url: url.href
+    }
+  }
   const gitlab = /^(\/.+)\/-\/(merge_requests|issues)\/(\d+)(?:\/.*)?$/.exec(url.pathname)
   if (gitlab && url.hostname !== 'github.com' && url.hostname !== 'linear.app') {
     return numberedReference(
@@ -162,7 +176,7 @@ function parseReferenceRoute(
 }
 
 export function getWorkspaceReferenceIdentifier(item: WorkspaceAttachment): string | undefined {
-  return item.identifier ?? item.linearIdentifier ?? item.jiraIdentifier
+  return item.identifier ?? item.linearIdentifier ?? item.jiraIdentifier ?? item.kerjanIdentifier
 }
 
 function externalUrl(item: WorkspaceAttachment): string | undefined {
@@ -187,6 +201,10 @@ function externalUrl(item: WorkspaceAttachment): string | undefined {
     case 'jira':
       return identity.siteUrl && identifier
         ? `${identity.siteUrl.replace(/\/+$/, '')}/browse/${identifier}`
+        : undefined
+    case 'kerjan':
+      return identity.siteUrl && identifier
+        ? (buildKerjanTicketUrl(identity.siteUrl, identifier) ?? undefined)
         : undefined
     case 'linear':
       return undefined

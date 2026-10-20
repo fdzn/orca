@@ -8,6 +8,7 @@ import {
 } from '@/components/settings/source-control-integration-cards'
 import {
   JiraIntegrationCard,
+  KerjanIntegrationCard,
   LinearIntegrationCard
 } from '@/components/settings/task-tracker-integration-cards'
 import {
@@ -157,8 +158,8 @@ export function ConnectIntegrationsList(): React.JSX.Element {
                   {status.codeHostTaskProviderName}
                 </span>{' '}
                 {translate(
-                  'auto.components.feature.wall.ConnectIntegrationsList.code_host_tasks_summary',
-                  'issues available as tasks · add Linear or Jira if your team plans work there'
+                  'auto.components.feature.wall.ConnectIntegrationsList.code_host_tasks_summary_with_kerjan',
+                  'issues available as tasks · add Linear, Jira, or Kerjan if your team plans work there'
                 )}
               </>
             )
@@ -174,6 +175,7 @@ export function ConnectIntegrationsList(): React.JSX.Element {
           <IntegrationCardGroup>
             <LinearIntegrationCard />
             <JiraIntegrationCard />
+            <KerjanIntegrationCard />
           </IntegrationCardGroup>
           <p className="px-1 pt-0.5 text-[12px] leading-snug text-muted-foreground">
             {translate(

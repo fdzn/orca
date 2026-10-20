@@ -5,9 +5,7 @@ import { isGitRepoKind } from '../../../../shared/repo-kind'
 import { getRepoExecutionHostId } from '../../../../shared/execution-host'
 import { hasFeatureInteraction } from '../../../../shared/feature-interactions'
 import { checkRuntimeHooks } from '@/runtime/runtime-hooks-client'
-import { getLocalPreflightContext, localPreflightContextKey } from '@/lib/local-preflight-context'
 import { hasEffectiveSetupCommand } from '@/lib/setup-script-status'
-import { getProviderRuntimeContextKey } from '@/lib/provider-runtime-context'
 import {
   COMPUTER_USE_SKILL_NAME,
   ORCA_CLI_SKILL_NAME,
@@ -22,7 +20,8 @@ import {
   getFeatureWallSetupProgress,
   type FeatureWallSetupProgress
 } from '../feature-wall/feature-wall-setup-progress'
-import { deriveIntegrationConnectionStatus } from '../feature-wall/use-integration-connection-status'
+import { useIntegrationConnectionStatus } from '../feature-wall/use-integration-connection-status'
+import { useIntegrationProviderStatusRefresh } from '../settings/use-integration-provider-status-refresh'
 import { useSetupGuideBrowserMilestoneProgress } from './setup-guide-browser-milestone-progress'
 import {
   getComputerUsePermissionSetupState,
@@ -46,26 +45,9 @@ export function useSetupGuideProgress(
   const settings = useAppStore((s) => s.settings)
   const featureInteractions = useAppStore((s) => s.featureInteractions)
   const worktreesByRepo = useAppStore((s) => s.worktreesByRepo)
-  const preflightStatus = useAppStore((s) => s.preflightStatus)
-  const preflightStatusChecked = useAppStore((s) => s.preflightStatusChecked)
-  const preflightStatusContextKey = useAppStore((s) => s.preflightStatusContextKey)
-  const preflightStatusError = useAppStore((s) => s.preflightStatusError)
-  const preflightStatusLoading = useAppStore((s) => s.preflightStatusLoading)
-  const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
   const activeSkillRuntime = useActiveProjectSkillRuntime()
-  const linearStatus = useAppStore((s) => s.linearStatus)
-  const linearStatusChecked = useAppStore((s) => s.linearStatusChecked)
-  const linearStatusContextKey = useAppStore((s) => s.linearStatusContextKey)
-  const checkLinearConnection = useAppStore((s) => s.checkLinearConnection)
-  const jiraStatus = useAppStore((s) => s.jiraStatus)
-  const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
-  const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)
-  const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
   const repos = useAppStore((s) => s.repos)
   const activeRepoId = useAppStore((s) => s.activeRepoId)
-  const expectedPreflightContextKey = useAppStore((s) =>
-    localPreflightContextKey(getLocalPreflightContext(s))
-  )
   const setupScriptProbe = useSyncExternalStore(
     subscribeSetupScriptProbeCache,
     readSetupScriptProbeCache,
@@ -95,41 +77,8 @@ export function useSetupGuideProgress(
     discoveryTarget: activeSkillRuntime.discoveryTarget,
     sourceKinds: GLOBAL_AGENT_SKILL_SOURCE_KINDS
   })
-  const providerRuntimeContextKey = getProviderRuntimeContextKey(settings)
-  const linearStatusCurrent = linearStatusContextKey === providerRuntimeContextKey
-  const jiraStatusCurrent = jiraStatusContextKey === providerRuntimeContextKey
-  const preflightStatusCurrent = preflightStatusContextKey === expectedPreflightContextKey
-
-  useEffect(() => {
-    if (!shouldRefreshCoreState) {
-      return
-    }
-    if (!preflightStatusCurrent || !preflightStatusChecked) {
-      void refreshPreflightStatus()
-    }
-    if (!linearStatusCurrent || !linearStatusChecked) {
-      void checkLinearConnection()
-    }
-    if (!jiraStatusCurrent || !jiraStatusChecked) {
-      void checkJiraConnection()
-    }
-  }, [
-    checkJiraConnection,
-    checkLinearConnection,
-    jiraStatusCurrent,
-    jiraStatusChecked,
-    jiraStatusContextKey,
-    linearStatusCurrent,
-    linearStatusChecked,
-    linearStatusContextKey,
-    expectedPreflightContextKey,
-    preflightStatusContextKey,
-    preflightStatusCurrent,
-    preflightStatusChecked,
-    providerRuntimeContextKey,
-    refreshPreflightStatus,
-    shouldRefreshCoreState
-  ])
+  useIntegrationProviderStatusRefresh(shouldRefreshCoreState)
+  const taskSourceStatus = useIntegrationConnectionStatus()
 
   const orderedGitRepos = useMemo(() => {
     const gitRepos = repos.filter(isGitRepoKind)
@@ -238,21 +187,6 @@ export function useSetupGuideProgress(
     }
   }, [computerUseSkillInstalled, readComputerUsePermissions, shouldRefreshCoreState])
 
-  const taskSourceStatus = deriveIntegrationConnectionStatus({
-    preflightStatus,
-    preflightStatusChecked,
-    preflightStatusContextKey,
-    preflightStatusError,
-    preflightStatusLoading,
-    expectedPreflightContextKey,
-    linearStatus,
-    linearStatusChecked,
-    linearStatusContextKey,
-    jiraStatus,
-    jiraStatusChecked,
-    jiraStatusContextKey,
-    providerRuntimeContextKey
-  })
   const hasConnectedTaskSource = taskSourceStatus.trackerConnected
   const gitRepoCount = orderedGitRepos.length
   const currentSetupScriptProbe = getCurrentSetupScriptProbeState(

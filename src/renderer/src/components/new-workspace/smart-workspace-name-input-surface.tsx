@@ -273,7 +273,7 @@ export function renderSmartWorkspaceNameInput(
                 return
               }
             }
-            if (mode === 'jira' || jiraSource.intent) {
+            if (mode === 'jira' || controller.taskUrlSourceIntent) {
               event.preventDefault()
               return
             }
@@ -297,9 +297,17 @@ export function renderSmartWorkspaceNameInput(
         }}
         placeholder={placeholder}
         disabled={disabled}
-        aria-busy={(jiraSource.intent && jiraSource.loading) || unresolvedLinearUrlIntent}
+        aria-busy={
+          (jiraSource.intent && jiraSource.loading) ||
+          (controller.kerjanSource.intent && controller.kerjanSource.loading) ||
+          unresolvedLinearUrlIntent
+        }
         aria-describedby={
-          jiraSource.intent ? jiraStatusId : unresolvedLinearUrlIntent ? linearStatusId : undefined
+          controller.taskUrlSourceIntent
+            ? jiraStatusId
+            : unresolvedLinearUrlIntent
+              ? linearStatusId
+              : undefined
         }
         // Why: match adjacent comboboxes' solid background in light mode.
         className="h-9 bg-background pl-8 text-sm"

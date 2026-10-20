@@ -1,5 +1,7 @@
 import type { TaskPageRuntimeHostsModel } from './use-task-page-runtime-hosts'
 import { useCallback, useMemo } from 'react'
+import { useAppStore } from '@/store'
+import { buildKerjanTaskSourceContext } from '@/lib/kerjan-ticket-workspace-source'
 import { getJiraAccountLabel } from '@/lib/jira-account-label'
 import type { Repo } from '../../../shared/repo-types'
 import {
@@ -142,8 +144,25 @@ export function useTaskPageSourceAvailabilityPrelude(model: TaskPageRuntimeHosts
   const jiraTaskSourceScopeKey = jiraTaskSourceContext
     ? getTaskSourceCacheScope(jiraTaskSourceContext)
     : providerRuntimeContextKey
+  const kerjanSiteUrl = useAppStore((s) => s.kerjanStatus.siteUrl)
+  const kerjanSelectedWorkspaceCode = useAppStore((s) => s.kerjanSelectedWorkspaceCode)
+  const kerjanTaskSourceContext = useMemo(
+    () =>
+      buildKerjanTaskSourceContext({
+        projectId: fallbackTaskSourceProjectId,
+        hostId: accountBackedTaskSourceHostId,
+        siteUrl: kerjanSiteUrl,
+        workspaceCode: kerjanSelectedWorkspaceCode
+      }),
+    [
+      accountBackedTaskSourceHostId,
+      fallbackTaskSourceProjectId,
+      kerjanSelectedWorkspaceCode,
+      kerjanSiteUrl
+    ]
+  )
   const accountBackedTaskSourceHostAvailability = useMemo<TaskSourceHostAvailability[]>(() => {
-    if (taskSource !== 'linear' && taskSource !== 'jira') {
+    if (taskSource !== 'linear' && taskSource !== 'jira' && taskSource !== 'kerjan') {
       return []
     }
     const host = hostRegistryById.get(accountBackedTaskSourceHostId)
@@ -170,7 +189,7 @@ export function useTaskPageSourceAvailabilityPrelude(model: TaskPageRuntimeHosts
   nextModel.jiraTaskSourceContext = jiraTaskSourceContext
   nextModel.jiraTaskSourceScopeKey = jiraTaskSourceScopeKey
   nextModel.accountBackedTaskSourceHostAvailability = accountBackedTaskSourceHostAvailability
-  return nextModel
+  return Object.assign(nextModel, { kerjanSiteUrl, kerjanTaskSourceContext })
 }
 export function useTaskPageSourceAvailability(model: TaskPageRuntimeHostsModel) {
   const preludeModel = useTaskPageSourceAvailabilityPrelude(model)

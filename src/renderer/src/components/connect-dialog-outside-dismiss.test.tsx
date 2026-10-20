@@ -5,6 +5,7 @@ import type { ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JiraConnectDialog } from './jira-connect-dialog'
+import { KerjanConnectDialog } from './kerjan-connect-dialog'
 import { LinearApiKeyDialog } from './linear-api-key-dialog'
 import { BitbucketCredentialsDialog } from './settings/bitbucket-credentials-dialog'
 
@@ -12,6 +13,7 @@ type StoreState = {
   settings: { activeRuntimeEnvironmentId: string | null }
   connectJira: (input: unknown) => Promise<{ ok: boolean; error?: string }>
   connectLinear: (apiKey: string) => Promise<{ ok: boolean; error?: string }>
+  connectKerjan: (input: unknown) => Promise<{ ok: boolean; error?: string }>
 }
 
 const mocks = vi.hoisted(() => {
@@ -34,7 +36,8 @@ beforeEach(() => {
   mocks.store.current = {
     settings: { activeRuntimeEnvironmentId: null },
     connectJira: vi.fn(async () => ({ ok: true })),
-    connectLinear: vi.fn(async () => ({ ok: true }))
+    connectLinear: vi.fn(async () => ({ ok: true })),
+    connectKerjan: vi.fn(async () => ({ ok: true }))
   }
 })
 
@@ -368,6 +371,35 @@ describe('BitbucketCredentialsDialog outside dismiss', () => {
 
     await type(inputByPlaceholder('you@example.com'), 'dev@example.com')
     await pressEscape()
+
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+})
+
+describe('KerjanConnectDialog outside dismiss', () => {
+  it('keeps a pasted token when the backdrop is clicked', async () => {
+    const onOpenChange = vi.fn()
+    await renderDialog(<KerjanConnectDialog open onOpenChange={onOpenChange} />)
+    const token = inputByPlaceholder('kjt_…')
+
+    await type(token, 'kjt_secret')
+    await outsideClick()
+
+    expect(onOpenChange).not.toHaveBeenCalled()
+    expect(token.value).toBe('kjt_secret')
+  })
+
+  it('still dismisses a clean reconnect prefilled with the old site URL', async () => {
+    const onOpenChange = vi.fn()
+    await renderDialog(
+      <KerjanConnectDialog
+        open
+        onOpenChange={onOpenChange}
+        initialBaseUrl="https://kerjan.example.test"
+      />
+    )
+
+    await outsideClick()
 
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })

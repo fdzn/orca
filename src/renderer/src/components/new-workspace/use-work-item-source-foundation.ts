@@ -9,6 +9,7 @@ import type {
 } from './smart-workspace-name-field-model'
 import { useJiraSourceConnection } from './use-jira-source-connection'
 import { useJiraUrlSource } from './use-jira-url-source'
+import { useKerjanUrlSource } from './use-kerjan-url-source'
 import { useLinearSourceConnection } from './use-linear-source-connection'
 import { useSmartWorkspaceFieldAvailability } from './use-smart-workspace-field-availability'
 import { useWorkItemSourceState } from './use-work-item-source-state'
@@ -161,6 +162,13 @@ export function useWorkItemSourceFoundation(props: NormalizedWorkItemSourceSearc
     sourceContext: jiraSourceContext,
     connection: jiraConnection
   })
+  const kerjanSource = useKerjanUrlSource({
+    value,
+    enabled: !disabled && !textOnly && state.mode === 'smart' && !sourceSelected,
+    hostSourceContext: jiraSourceContext
+  })
+  // Why: a pasted ticket URL resolves to exactly one ticket, so it owns the input like Jira's.
+  const taskUrlSourceIntent = jiraSource.intent || kerjanSource.intent
   const jiraSourceConnected = jiraConnectionStatus?.connected === true
   const jiraProject = useJiraComposerProject(
     selectedRepo,
@@ -210,6 +218,8 @@ export function useWorkItemSourceFoundation(props: NormalizedWorkItemSourceSearc
     linearSourceContext,
     jiraConnectionStatus,
     jiraSource,
+    kerjanSource,
+    taskUrlSourceIntent,
     jiraSourceConnected,
     ...jiraProject,
     showJiraSiteContext,

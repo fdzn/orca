@@ -19,6 +19,10 @@ import {
 } from '../../../../shared/task-source-context'
 import type { CmdJTaskSearchResult } from './task-search-results'
 import { getJiraIssueWorkspaceSeed } from '../task-page-source-context'
+import {
+  buildKerjanTicketLinkedWorkItem,
+  getKerjanTicketWorkspaceSeed
+} from '@/lib/kerjan-ticket-workspace-source'
 
 function sourceMatches(source: TaskSourceContext, target: TaskSourceContext): boolean {
   if (source.provider !== target.provider || source.hostId !== target.hostId) {
@@ -80,21 +84,25 @@ export function openCmdJTask(result: CmdJTaskSearchResult, createWorkspace = fal
     const linkedWorkItem: LinkedWorkItemSummary =
       task.provider === 'linear'
         ? buildLinearIssueLinkedWorkItem(task.issue)
-        : {
-            provider: task.provider,
-            type: 'issue',
-            number: task.provider === 'jira' ? 0 : task.issue.number,
-            title: task.issue.title,
-            url: task.issue.url,
-            ...(task.provider === 'jira' ? { jiraIdentifier: task.issue.key } : {})
-          }
+        : task.provider === 'kerjan'
+          ? buildKerjanTicketLinkedWorkItem(task.issue)
+          : {
+              provider: task.provider,
+              type: 'issue',
+              number: task.provider === 'jira' ? 0 : task.issue.number,
+              title: task.issue.title,
+              url: task.issue.url,
+              ...(task.provider === 'jira' ? { jiraIdentifier: task.issue.key } : {})
+            }
     const prefilledName =
       task.provider === 'linear'
         ? getLinearIssueWorkspaceName(task.issue)
         : task.provider === 'jira'
           ? getJiraIssueWorkspaceSeed(task.issue)
-          : (getLinkedWorkItemWorkspaceName(linkedWorkItem)?.seedName ??
-            getLinkedWorkItemSuggestedName(linkedWorkItem))
+          : task.provider === 'kerjan'
+            ? getKerjanTicketWorkspaceSeed(task.issue)
+            : (getLinkedWorkItemWorkspaceName(linkedWorkItem)?.seedName ??
+              getLinkedWorkItemSuggestedName(linkedWorkItem))
     queueMicrotask(() =>
       useAppStore.getState().openModal('new-workspace-composer', {
         linkedWorkItem,
@@ -115,17 +123,23 @@ export function openCmdJTask(result: CmdJTaskSearchResult, createWorkspace = fal
       ? { ...common, openLinearIssue: task.issue, openLinearSourceContext: result.sourceContext }
       : task.provider === 'jira'
         ? { ...common, openJiraIssue: task.issue, openJiraSourceContext: result.sourceContext }
-        : task.provider === 'github'
+        : task.provider === 'kerjan'
           ? {
               ...common,
-              openGitHubWorkItem: task.issue,
-              openGitHubSourceContext: result.sourceContext
+              openKerjanIssue: task.issue,
+              openKerjanSourceContext: result.sourceContext
             }
-          : {
-              ...common,
-              openGitLabWorkItem: task.issue,
-              openGitLabSourceContext: result.sourceContext
-            },
+          : task.provider === 'github'
+            ? {
+                ...common,
+                openGitHubWorkItem: task.issue,
+                openGitHubSourceContext: result.sourceContext
+              }
+            : {
+                ...common,
+                openGitLabWorkItem: task.issue,
+                openGitLabSourceContext: result.sourceContext
+              },
     { recordTasksInteraction: false }
   )
 }

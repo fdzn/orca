@@ -36,7 +36,8 @@ const PROVIDER_LABELS: Record<WorkspaceDetailLink['provider'], string> = {
   jira: 'Jira',
   bitbucket: 'Bitbucket',
   'azure-devops': 'Azure DevOps',
-  gitea: 'Gitea'
+  gitea: 'Gitea',
+  kerjan: 'Kerjan'
 }
 const STATE_LABELS: Record<string, string> = {
   open: 'Open',

@@ -38,6 +38,9 @@ function statusFacts(overrides: Partial<StatusFacts> = {}): StatusFacts {
     jiraStatus: { connected: false },
     jiraStatusChecked: true,
     jiraStatusContextKey: 'local#0',
+    kerjanStatus: { connected: false },
+    kerjanStatusChecked: true,
+    kerjanStatusContextKey: 'local#0',
     providerRuntimeContextKey: 'local#0',
     ...overrides
   }
@@ -249,6 +252,26 @@ describe('deriveIntegrationConnectionStatus', () => {
     })
   })
 
+  it('treats a current Kerjan connection as a tracker and waits on a stale Kerjan check', () => {
+    expect(
+      deriveIntegrationConnectionStatus(statusFacts({ kerjanStatus: { connected: true } }))
+    ).toMatchObject({
+      trackerConnected: true,
+      trackerProviderName: 'Kerjan',
+      taskSourceNames: ['Kerjan'],
+      checking: false
+    })
+    expect(
+      deriveIntegrationConnectionStatus(
+        statusFacts({ kerjanStatus: { connected: true }, kerjanStatusContextKey: 'runtime:old#0' })
+      )
+    ).toMatchObject({
+      trackerConnected: false,
+      trackerProviderName: null,
+      trackerChecking: true
+    })
+  })
+
   it('lists every connected task source with trackers before code hosts', () => {
     expect(
       deriveIntegrationConnectionStatus(
@@ -258,11 +281,12 @@ describe('deriveIntegrationConnectionStatus', () => {
             glab: { installed: true, authenticated: true }
           },
           linearStatus: { connected: true },
-          jiraStatus: { connected: true }
+          jiraStatus: { connected: true },
+          kerjanStatus: { connected: true }
         })
       )
     ).toMatchObject({
-      taskSourceNames: ['Linear', 'Jira', 'GitHub', 'GitLab']
+      taskSourceNames: ['Linear', 'Jira', 'Kerjan', 'GitHub', 'GitLab']
     })
 
     expect(

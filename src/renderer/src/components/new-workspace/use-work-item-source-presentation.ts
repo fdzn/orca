@@ -35,6 +35,8 @@ export function useWorkItemSourcePresentation(
 ) {
   const {
     jiraSource,
+    kerjanSource,
+    taskUrlSourceIntent,
     branches,
     mode,
     branchResultsSource,
@@ -118,6 +120,8 @@ export function useWorkItemSourcePresentation(
         value,
         debouncedQuery
       }),
+      kerjanIntent: kerjanSource.intent,
+      kerjanIssue: kerjanSource.issue,
       linearAvailable: linearAvailable && !linearUrlLookupFailed,
       linearIssues: prioritizeSmartWorkspaceLinearIssueResults(
         value,
@@ -151,6 +155,8 @@ export function useWorkItemSourcePresentation(
     jiraSource.intent,
     jiraSource.issue,
     jiraIssues,
+    kerjanSource.intent,
+    kerjanSource.issue,
     linearAvailable,
     linearIssues,
     linearUrlIntentOwnsInput,
@@ -175,7 +181,7 @@ export function useWorkItemSourcePresentation(
   const isQueryStale =
     !linearUrlIntentOwnsInput && trimmedValue.length > 0 && trimmedDebouncedQuery !== trimmedValue
   // Why: unambiguous refs highlight their source row instead of the typed-text fallback.
-  const sourceIntent = useMemo<'github' | 'gitlab' | 'linear' | 'jira' | null>(() => {
+  const sourceIntent = useMemo<'github' | 'gitlab' | 'linear' | 'jira' | 'kerjan' | null>(() => {
     if (!isSmartWorkspaceSourceQueryWithinLimit(value)) {
       return null
     }
@@ -185,6 +191,9 @@ export function useWorkItemSourcePresentation(
     }
     if (jiraSource.intent) {
       return 'jira'
+    }
+    if (kerjanSource.intent) {
+      return 'kerjan'
     }
     if (/^#\d+$/.test(trimmed) || parseGitHubIssueOrPRLink(trimmed) !== null) {
       return 'github'
@@ -205,7 +214,7 @@ export function useWorkItemSourcePresentation(
       }
     }
     return null
-  }, [jiraSource.intent, linearAvailable, rows, value])
+  }, [jiraSource.intent, kerjanSource.intent, linearAvailable, rows, value])
   const unresolvedLinearUrlIntent =
     linearUrlIntentOwnsInput &&
     linearAvailable &&
@@ -234,8 +243,8 @@ export function useWorkItemSourcePresentation(
     linearLoading && linearUrlIntentOwnsInput && linearUrlLoadingFeedbackQuery === linearQuery
   const visibleLinearLoading =
     linearLoading && (!linearUrlIntentOwnsInput || showLinearUrlLoadingFeedback)
-  const loading = jiraSource.intent
-    ? jiraSource.loading
+  const loading = taskUrlSourceIntent
+    ? jiraSource.loading || kerjanSource.loading
     : githubLoading || gitlabLoading || branchesLoading || visibleLinearLoading || jiraLoading
   // Why: only spin on first load, not refreshes with retained rows.
   const showSearchSpinner = loading && searchResultRows.length === 0

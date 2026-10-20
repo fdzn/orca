@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Github, Gitlab, Plus } from 'lucide-react'
 import { LinearIcon } from '@/components/icons/LinearIcon'
 import { JiraIcon } from '@/components/icons/JiraIcon'
+import { KerjanIcon } from '@/components/icons/KerjanIcon'
 import { CommandItem } from '@/components/ui/command'
 import { CREATE_WORKTREE_ITEM_ID } from '@/lib/worktree-palette-create-action'
 import type { CmdJTaskUrlCreatePreview } from '@/lib/worktree-palette-task-url-match'
@@ -18,6 +19,9 @@ function TaskUrlProviderIcon({
   }
   if (provider === 'gitlab') {
     return <Gitlab className="size-3" aria-hidden="true" />
+  }
+  if (provider === 'kerjan') {
+    return <KerjanIcon className="size-3" />
   }
   return <JiraIcon className="size-3" />
 }

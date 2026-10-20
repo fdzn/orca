@@ -29,11 +29,18 @@ export type JiraTaskProviderIdentity = {
   projectKey?: string | null
 }
 
+export type KerjanTaskProviderIdentity = {
+  provider: 'kerjan'
+  siteUrl?: string | null
+  workspaceCode?: string | null
+}
+
 export type TaskProviderIdentity =
   | GitHubTaskProviderIdentity
   | GitLabTaskProviderIdentity
   | LinearTaskProviderIdentity
   | JiraTaskProviderIdentity
+  | KerjanTaskProviderIdentity
 
 export function normalizeTaskProviderIdentity(
   provider: TaskProvider,
@@ -79,6 +86,12 @@ export function normalizeTaskProviderIdentity(
         siteUrl: normalizeNonEmptyString(raw.siteUrl),
         projectKey: normalizeNonEmptyString(raw.projectKey)
       }
+    case 'kerjan':
+      return {
+        provider,
+        siteUrl: normalizeNonEmptyString(raw.siteUrl),
+        workspaceCode: normalizeNonEmptyString(raw.workspaceCode)
+      }
   }
 }
 
@@ -112,6 +125,8 @@ export function isStoredTaskProviderIdentity(provider: TaskProvider, identity: u
       )
     case 'jira':
       return ['siteId', 'siteUrl', 'projectKey'].every((key) => isNullableOptionalString(raw[key]))
+    case 'kerjan':
+      return ['siteUrl', 'workspaceCode'].every((key) => isNullableOptionalString(raw[key]))
   }
 }
 
@@ -119,7 +134,8 @@ const TASK_PROVIDER_IDENTITY_FIELDS: Record<TaskProvider, readonly string[]> = {
   github: ['owner', 'repo', 'host'],
   gitlab: ['projectId', 'namespace', 'project', 'webUrl'],
   linear: ['workspaceId', 'workspaceName', 'teamId', 'teamKey'],
-  jira: ['siteId', 'siteUrl', 'projectKey']
+  jira: ['siteId', 'siteUrl', 'projectKey'],
+  kerjan: ['siteUrl', 'workspaceCode']
 }
 
 export function areTaskProviderIdentitiesEqual(
@@ -157,6 +173,31 @@ export function taskProviderIdentityCachePart(
       return [identity.workspaceId, identity.teamId ?? identity.teamKey].filter(Boolean).join('/')
     case 'jira':
       return [identity.siteId ?? identity.siteUrl, identity.projectKey].filter(Boolean).join('/')
+    case 'kerjan':
+      return [identity.siteUrl, identity.workspaceCode].filter(Boolean).join('/')
+  }
+}
+
+/** Human label for where a source's tasks come from (repo, workspace, or site). */
+export function getTaskProviderIdentityLabel(
+  identity: TaskProviderIdentity | null | undefined
+): string | null {
+  if (!identity) {
+    return null
+  }
+  switch (identity.provider) {
+    case 'github':
+      return `${identity.owner}/${identity.repo}`
+    case 'gitlab':
+      return identity.namespace && identity.project
+        ? `${identity.namespace}/${identity.project}`
+        : (identity.projectId ?? null)
+    case 'linear':
+      return identity.workspaceName ?? identity.workspaceId ?? null
+    case 'jira':
+      return identity.siteUrl ?? identity.siteId ?? null
+    case 'kerjan':
+      return identity.workspaceCode ?? identity.siteUrl ?? null
   }
 }
 

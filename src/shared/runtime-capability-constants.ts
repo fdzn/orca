@@ -7,6 +7,8 @@ export const WORKSPACE_RUN_CONTEXT_RUNTIME_CAPABILITY = 'workspace-run-context.v
 export const WORKTREE_PROVISIONED_ROOT_RUNTIME_CAPABILITY = 'worktree.provisioned-root.v1' as const
 export const WORKTREE_LINKED_WORK_ITEM_CONTEXT_RUNTIME_CAPABILITY =
   'worktree.linked-work-item-context.v1' as const
+// Why: older hosts drop `kerjan` links and task-source contexts during normalization.
+export const KERJAN_TASK_PROVIDER_RUNTIME_CAPABILITY = 'kerjan.task-provider.v1' as const
 export const WORKTREE_GITHUB_PR_SUPPRESSION_RUNTIME_CAPABILITY =
   'worktree.github-pr-suppression.v1' as const
 // Legacy clients cannot safely derive a branch name from a qualified ref selector.

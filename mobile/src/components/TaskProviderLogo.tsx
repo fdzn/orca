@@ -1,6 +1,7 @@
+import { Ticket } from 'lucide-react-native'
 import Svg, { Path } from 'react-native-svg'
 
-export type TaskProviderLogoKind = 'github' | 'gitlab' | 'linear' | 'jira'
+export type TaskProviderLogoKind = 'github' | 'gitlab' | 'linear' | 'jira' | 'kerjan'
 
 type Props = {
   provider: TaskProviderLogoKind
@@ -44,6 +45,10 @@ export function TaskProviderLogo({ provider, size = 16, color }: Props) {
         <Path d="m22 13.29-3.33-10a.42.42 0 0 0-.14-.18.38.38 0 0 0-.22-.11.39.39 0 0 0-.23.07.42.42 0 0 0-.14.18l-2.26 6.67H8.32L6.1 3.26A.42.42 0 0 0 6 3.08.38.38 0 0 0 5.74 3a.39.39 0 0 0-.23.07.42.42 0 0 0-.14.18L2 13.29a.74.74 0 0 0 .27.83L12 21l9.69-6.88a.71.71 0 0 0 .31-.83Z" />
       </Svg>
     )
+  }
+
+  if (provider === 'kerjan') {
+    return <Ticket size={size} color={color} />
   }
 
   if (provider === 'jira') {

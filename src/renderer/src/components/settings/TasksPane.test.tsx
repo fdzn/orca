@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
   refreshPreflightStatus: vi.fn(),
   checkLinearConnection: vi.fn(),
   checkJiraConnection: vi.fn(),
+  checkKerjanConnection: vi.fn(),
+  kerjanSetupProps: new Array<{ onOpenIntegrations: () => void; onConnected: () => void }>(),
   linearSetupProps: [] as {
     connected: boolean
     checking: boolean
@@ -65,6 +67,10 @@ vi.mock('./TaskSourceSimpleSetup', () => ({
   JiraSetupSteps: (props: { onOpenIntegrations: () => void }) => {
     mocks.jiraSetupProps.push(props)
     return <div data-testid="jira-setup">Jira setup</div>
+  },
+  KerjanSetupSteps: (props: { onOpenIntegrations: () => void; onConnected: () => void }) => {
+    mocks.kerjanSetupProps.push(props)
+    return <div data-testid="kerjan-setup">Kerjan setup</div>
   }
 }))
 
@@ -76,6 +82,7 @@ vi.mock('@/store', () => ({
       refreshPreflightStatus: () => void
       checkLinearConnection: () => void
       checkJiraConnection: () => void
+      checkKerjanConnection: () => void
       settingsSearchQuery: string
     }) => unknown
   ) =>
@@ -85,6 +92,7 @@ vi.mock('@/store', () => ({
       refreshPreflightStatus: mocks.refreshPreflightStatus,
       checkLinearConnection: mocks.checkLinearConnection,
       checkJiraConnection: mocks.checkJiraConnection,
+      checkKerjanConnection: mocks.checkKerjanConnection,
       settingsSearchQuery: ''
     })
 }))
@@ -124,6 +132,8 @@ describe('TasksPane', () => {
   beforeEach(() => {
     mocks.linearSetupProps = []
     mocks.jiraSetupProps = []
+    mocks.kerjanSetupProps = []
+    mocks.checkKerjanConnection.mockClear()
     mocks.openSettingsPage.mockClear()
     mocks.openSettingsTarget.mockClear()
     mocks.readiness = {
@@ -137,7 +147,8 @@ describe('TasksPane', () => {
         skillChecking: false,
         visible: true
       },
-      jira: { connected: false, checking: false, visible: false }
+      jira: { connected: false, checking: false, visible: false },
+      kerjan: { connected: false, checking: false, visible: false }
     }
   })
 
@@ -251,6 +262,33 @@ describe('TasksPane', () => {
       repoId: null,
       sectionId: 'integrations-jira'
     })
+  })
+
+  it('renders Kerjan setup steps that deep-link to the Kerjan card and re-check on connect', async () => {
+    mocks.readiness.kerjan = {
+      connected: true,
+      checking: false,
+      visible: true
+    }
+    await renderInteractivePane()
+    const expandKerjan = Array.from(container?.querySelectorAll('button') ?? []).find(
+      (button) => button.getAttribute('aria-label') === 'Show Kerjan setup steps'
+    )
+
+    await act(async () => {
+      expandKerjan?.click()
+    })
+    expect(container?.querySelector('[data-testid="kerjan-setup"]')).not.toBeNull()
+    expect(container?.querySelector('[data-testid="code-host-Kerjan"]')).toBeNull()
+    mocks.kerjanSetupProps.at(-1)?.onOpenIntegrations()
+    mocks.kerjanSetupProps.at(-1)?.onConnected()
+
+    expect(mocks.openSettingsTarget).toHaveBeenCalledWith({
+      pane: 'integrations',
+      repoId: null,
+      sectionId: 'integrations-kerjan'
+    })
+    expect(mocks.checkKerjanConnection).toHaveBeenCalledOnce()
   })
 
   it('auto-expands only the first incomplete provider', () => {

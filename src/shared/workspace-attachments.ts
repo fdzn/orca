@@ -42,16 +42,28 @@ const ENGLISH_ATTACHMENT_LABELS: WorkspaceAttachmentLabelFormats = {
   issue: (number) => `Issue #${number}`
 }
 
-/** A reference as people say it: the tracker's own key for Linear and Jira, else `PR #12`-style. */
+/** A reference as people say it: the tracker's own key for Linear/Jira/Kerjan, else `PR #12`-style. */
 export function workspaceAttachmentReferenceLabel(
   item: Pick<
     WorkspaceAttachment,
-    'provider' | 'type' | 'number' | 'identifier' | 'linearIdentifier' | 'jiraIdentifier'
+    | 'provider'
+    | 'type'
+    | 'number'
+    | 'identifier'
+    | 'linearIdentifier'
+    | 'jiraIdentifier'
+    | 'kerjanIdentifier'
   >,
   formats: WorkspaceAttachmentLabelFormats = ENGLISH_ATTACHMENT_LABELS
 ): string {
-  if (item.provider === 'linear' || item.provider === 'jira') {
-    return item.identifier ?? item.linearIdentifier ?? item.jiraIdentifier ?? `#${item.number}`
+  if (item.provider === 'linear' || item.provider === 'jira' || item.provider === 'kerjan') {
+    return (
+      item.identifier ??
+      item.linearIdentifier ??
+      item.jiraIdentifier ??
+      item.kerjanIdentifier ??
+      `#${item.number}`
+    )
   }
   return formats[item.type](item.number)
 }

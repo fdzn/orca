@@ -52,8 +52,13 @@ async function readBodyFile(path: string, cwd: string): Promise<string> {
   if (path !== '-') {
     return readFile(isAbsolute(path) ? path : join(cwd, path), 'utf8')
   }
+  return readPipedStdin('body')
+}
+
+/** Reads all of a piped stdin; refuses a TTY so the command never hangs on a prompt. */
+export async function readPipedStdin(label: string): Promise<string> {
   if (process.stdin.isTTY) {
-    throw new RuntimeClientError('invalid_argument', 'stdin body requested but stdin is a TTY')
+    throw new RuntimeClientError('invalid_argument', `stdin ${label} requested but stdin is a TTY`)
   }
   const chunks: Buffer[] = []
   for await (const chunk of process.stdin) {

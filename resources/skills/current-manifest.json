@@ -114,6 +114,22 @@
       ]
     },
     {
+      "name": "orca-kerjan",
+      "sourcePath": "skills/orca-kerjan",
+      "packageDigest": "25d31f49d7b68b3965a8313d4616e805caf90928150a9ccfab200ce4e3613050",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "size": 2112,
+          "executable": false,
+          "classification": "text",
+          "exactSha256": "51432636ab5d1727ba24ac8ebcdbad5f2154448001f819dd4752e6b8013e9161",
+          "textNormalizedSha256": "51432636ab5d1727ba24ac8ebcdbad5f2154448001f819dd4752e6b8013e9161",
+          "identitySha256": "51432636ab5d1727ba24ac8ebcdbad5f2154448001f819dd4752e6b8013e9161"
+        }
+      ]
+    },
+    {
       "name": "orca-linear",
       "sourcePath": "skills/orca-linear",
       "packageDigest": "95f52429823e887317046f23b671d05408a947c296e5b2e44e9173dfc1d5aa4e",

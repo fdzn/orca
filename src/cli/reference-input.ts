@@ -1,6 +1,8 @@
 import type { WorkspaceAttachment } from '../shared/worktree/types'
 import type { RuntimeStatus } from '../shared/runtime-types'
 import type { JiraIssue } from '../shared/jira-types'
+import type { KerjanIssueDetail } from '../shared/kerjan-types'
+import { KERJAN_TASK_PROVIDER_RUNTIME_CAPABILITY } from '../shared/runtime-capability-constants'
 import {
   isResolvedJiraIssueMatch,
   JIRA_ISSUE_KEY_PATTERN,
@@ -56,7 +58,7 @@ export async function resolveReferenceInputs(
   for (const input of inputs) {
     let item: WorkspaceAttachment
     if ('item' in input) {
-      item = input.item
+      item = await withKerjanTitle(context, input.item)
     } else {
       const cached = resolvedKeys.get(input.key)
       if (cached) {
@@ -92,12 +94,52 @@ export async function resolveReferenceInputs(
   return [...references.values()]
 }
 
-export async function assertReferenceWritesSupported(client: RuntimeClient): Promise<void> {
+// Why best-effort: a Kerjan URL is a complete reference; the title only decorates it, so an
+// unconnected site, another Kerjan, or an older host must not block linking.
+async function withKerjanTitle(
+  context: HandlerContext,
+  item: WorkspaceAttachment
+): Promise<WorkspaceAttachment> {
+  if (item.provider !== 'kerjan' || item.title || !item.kerjanIdentifier) {
+    return item
+  }
+  try {
+    const { result: issue } = await context.client.call<KerjanIssueDetail | null>(
+      'kerjan.getIssue',
+      { key: item.kerjanIdentifier }
+    )
+    if (!issue?.url || !issue.title.trim()) {
+      return item
+    }
+    const sameTicket =
+      getWorkspaceReferenceIdentity(parseWorkspaceReferenceUrl(issue.url)) ===
+      getWorkspaceReferenceIdentity(item)
+    return sameTicket ? { ...item, title: issue.title } : item
+  } catch {
+    return item
+  }
+}
+
+export async function assertReferenceWritesSupported(
+  client: RuntimeClient,
+  items: readonly WorkspaceAttachment[] = []
+): Promise<void> {
   const status = await client.call<RuntimeStatus>('status.get')
-  if (!status.result.capabilities?.includes(WORKTREE_LINKED_ITEMS_DELTA_RUNTIME_CAPABILITY)) {
+  const capabilities = status.result.capabilities ?? []
+  if (!capabilities.includes(WORKTREE_LINKED_ITEMS_DELTA_RUNTIME_CAPABILITY)) {
     throw new RuntimeClientError(
       'incompatible_runtime',
       'This Orca host cannot merge reference changes safely. Update Orca on the execution host.'
+    )
+  }
+  // Why: older hosts drop Kerjan links during normalization, so the write would silently lose them.
+  if (
+    items.some((item) => item.provider === 'kerjan') &&
+    !capabilities.includes(KERJAN_TASK_PROVIDER_RUNTIME_CAPABILITY)
+  ) {
+    throw new RuntimeClientError(
+      'incompatible_runtime',
+      'This Orca host cannot store Kerjan references yet. Update Orca on the execution host.'
     )
   }
 }

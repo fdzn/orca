@@ -5,6 +5,7 @@ import {
 } from '../../../shared/workspace-attachment-capabilities'
 import { assertRuntimeEnvironmentCapability } from './runtime-rpc-client'
 import type { RuntimeClientTarget } from '../../../shared/runtime-client-target'
+import { KERJAN_TASK_PROVIDER_RUNTIME_CAPABILITY } from '../../../shared/runtime-capability-constants'
 import { translate } from '@/i18n/i18n'
 
 export async function assertWorkspaceAttachmentWriteCapability(
@@ -14,6 +15,7 @@ export async function assertWorkspaceAttachmentWriteCapability(
   if (target.kind !== 'environment') {
     return
   }
+  await assertKerjanLinkCapability(target, ...(updates.linkedItems ?? []))
   if (updates.linkedItemsBase !== undefined) {
     await assertRuntimeEnvironmentCapability(
       target.environmentId,
@@ -34,4 +36,19 @@ export async function assertWorkspaceAttachmentWriteCapability(
       )
     )
   }
+}
+
+/** Older hosts silently drop Kerjan links, so refuse to send them without the capability. */
+export async function assertKerjanLinkCapability(
+  target: RuntimeClientTarget,
+  ...sources: ({ provider?: string } | null | undefined)[]
+): Promise<void> {
+  if (target.kind !== 'environment' || !sources.some((source) => source?.provider === 'kerjan')) {
+    return
+  }
+  await assertRuntimeEnvironmentCapability(
+    target.environmentId,
+    KERJAN_TASK_PROVIDER_RUNTIME_CAPABILITY,
+    'Update the remote runtime to link Kerjan'
+  )
 }

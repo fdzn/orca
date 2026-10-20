@@ -64,7 +64,8 @@ export function getWorkspaceReferenceRequest(
       : item.provider === 'github' ||
           item.provider === 'gitlab' ||
           item.provider === 'linear' ||
-          item.provider === 'jira'
+          item.provider === 'jira' ||
+          item.provider === 'kerjan'
         ? getWorkspaceAttachmentSourceContext(item.provider, repo, workspace)
         : null)
   return {
@@ -125,7 +126,12 @@ export function workspaceReferenceReview(
   item: WorkspaceAttachment,
   details: WorkspaceReferenceDetails | undefined
 ): WorktreeCardPrDisplay | null {
-  if (item.provider === 'linear' || item.provider === 'jira' || item.type === 'issue') {
+  if (
+    item.provider === 'linear' ||
+    item.provider === 'jira' ||
+    item.provider === 'kerjan' ||
+    item.type === 'issue'
+  ) {
     return null
   }
   return (

@@ -22,6 +22,7 @@ import {
   type RuntimeTaskSettings,
   type TaskResumeState
 } from './mobile-tasks-legacy-foundation'
+import { mobileSupportedTaskProviders } from './mobile-supported-task-providers'
 
 export function useMobileTasksRuntimeHydration(model: ClientSettingsActionsModel) {
   const {
@@ -291,7 +292,9 @@ export function useMobileTasksRuntimeHydration(model: ClientSettingsActionsModel
       const preflight = preflightRead.accepted ? preflightRead.value : null
       const linearRead = taskLinearStatusRead.interpret(linearStatusReply)
       const linearStatus = linearRead.accepted ? linearRead.value : null
-      const preferredProviders = normalizeVisibleTaskProviders(settings.visibleTaskProviders)
+      const preferredProviders = mobileSupportedTaskProviders(
+        normalizeVisibleTaskProviders(settings.visibleTaskProviders)
+      )
       const linearIsConnected = linearStatus?.connected === true
       const availableProviders = filterAvailableTaskProviders(preferredProviders, {
         gitlabInstalled: preflight?.glab?.installed === true,

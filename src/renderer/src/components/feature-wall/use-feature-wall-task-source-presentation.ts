@@ -32,6 +32,10 @@ export function useFeatureWallTaskSourcePresentation(
   const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
   const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)
   const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
+  const kerjanStatus = useAppStore((s) => s.kerjanStatus)
+  const kerjanStatusChecked = useAppStore((s) => s.kerjanStatusChecked)
+  const kerjanStatusContextKey = useAppStore((s) => s.kerjanStatusContextKey)
+  const checkKerjanConnection = useAppStore((s) => s.checkKerjanConnection)
   const settings = useAppStore((s) => s.settings)
   const expectedPreflightContextKey = useAppStore((s) =>
     localPreflightContextKey(getLocalPreflightContext(s))
@@ -39,6 +43,7 @@ export function useFeatureWallTaskSourcePresentation(
   const providerRuntimeContextKey = getProviderRuntimeContextKey(settings)
   const linearStatusCurrent = linearStatusContextKey === providerRuntimeContextKey
   const jiraStatusCurrent = jiraStatusContextKey === providerRuntimeContextKey
+  const kerjanStatusCurrent = kerjanStatusContextKey === providerRuntimeContextKey
   const preflightStatusCurrent = preflightStatusContextKey === expectedPreflightContextKey
 
   useEffect(() => {
@@ -56,14 +61,21 @@ export function useFeatureWallTaskSourcePresentation(
     if (!jiraStatusCurrent || !jiraStatusChecked) {
       void checkJiraConnection()
     }
+    if (!kerjanStatusCurrent || !kerjanStatusChecked) {
+      void checkKerjanConnection()
+    }
   }, [
     checkJiraConnection,
+    checkKerjanConnection,
     checkLinearConnection,
     expectedPreflightContextKey,
     isOpen,
     jiraStatusCurrent,
     jiraStatusChecked,
     jiraStatusContextKey,
+    kerjanStatusCurrent,
+    kerjanStatusChecked,
+    kerjanStatusContextKey,
     linearStatusCurrent,
     linearStatusChecked,
     linearStatusContextKey,
@@ -87,6 +99,9 @@ export function useFeatureWallTaskSourcePresentation(
     jiraStatus,
     jiraStatusChecked,
     jiraStatusContextKey,
+    kerjanStatus,
+    kerjanStatusChecked,
+    kerjanStatusContextKey,
     providerRuntimeContextKey
   })
 

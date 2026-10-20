@@ -21,6 +21,7 @@ export type {
   GitHubTaskProviderIdentity,
   GitLabTaskProviderIdentity,
   JiraTaskProviderIdentity,
+  KerjanTaskProviderIdentity,
   LinearTaskProviderIdentity,
   TaskProviderIdentity
 } from './task-provider-identity'
@@ -216,6 +217,7 @@ function normalizeTaskProvider(value: unknown): TaskProvider | null {
     case 'gitlab':
     case 'linear':
     case 'jira':
+    case 'kerjan':
       return value
     default:
       return null

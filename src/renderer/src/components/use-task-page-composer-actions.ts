@@ -15,6 +15,8 @@ import { shouldHideTaskPageListChrome } from '@/components/task-page-list-chrome
 import { getJiraIssueWorkspaceSeed } from './task-page-source-context'
 import { findJiraIssueDefaultRepo } from '../../../shared/jira-project-reference'
 import { getRepoWorkspaceCreationTargetHint } from '@/lib/project-host-workspace-target'
+import type { KerjanIssue } from '../../../shared/kerjan-types'
+import { openKerjanTicketComposer } from '@/lib/kerjan-ticket-workspace-open'
 export function useTaskPageComposerActions(model: TaskPageJiraListEffectsModel) {
   const {
     setTaskResumeState,
@@ -235,6 +237,14 @@ export function useTaskPageComposerActions(model: TaskPageJiraListEffectsModel) 
     },
     [openComposerForJiraItem]
   )
+  const { kerjanTaskSourceContext } = model
+  const handleUseKerjanItem = useCallback(
+    (issue: KerjanIssue): void => {
+      useAppStore.getState().recordFeatureInteraction('kerjan-tasks')
+      openKerjanTicketComposer(issue, kerjanTaskSourceContext)
+    },
+    [kerjanTaskSourceContext]
+  )
   const taskPageListChromeHidden = shouldHideTaskPageListChrome({
     taskSource,
     hasGitHubDetail: Boolean(dialogWorkItem),
@@ -266,6 +276,6 @@ export function useTaskPageComposerActions(model: TaskPageJiraListEffectsModel) 
   nextModel.openComposerForJiraItem = openComposerForJiraItem
   nextModel.handleUseJiraItem = handleUseJiraItem
   nextModel.taskPageListChromeHidden = taskPageListChromeHidden
-  return nextModel
+  return Object.assign(nextModel, { handleUseKerjanItem })
 }
 export type TaskPageComposerActionsModel = ReturnType<typeof useTaskPageComposerActions>

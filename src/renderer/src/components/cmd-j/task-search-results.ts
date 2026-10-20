@@ -1,6 +1,7 @@
 import type { GitHubWorkItem } from '../../../../shared/github/work-item-types'
 import type { GitLabWorkItem } from '../../../../shared/gitlab-types'
 import type { JiraIssue } from '../../../../shared/jira-types'
+import type { KerjanIssue } from '../../../../shared/kerjan-types'
 import type { LinearIssue } from '../../../../shared/linear/issue-types'
 import {
   getTaskSourceCacheScope,
@@ -12,6 +13,7 @@ import { isWorktreePaletteQueryTooLarge } from '@/lib/worktree-palette-query-bou
 export type CmdJTask =
   | { provider: 'linear'; issue: LinearIssue }
   | { provider: 'jira'; issue: JiraIssue }
+  | { provider: 'kerjan'; issue: KerjanIssue }
   | { provider: 'github'; issue: GitHubWorkItem }
   | { provider: 'gitlab'; issue: GitLabWorkItem }
 
@@ -45,13 +47,13 @@ export function makeCmdJTaskSearchResult(
   const identifier =
     task.provider === 'linear'
       ? task.issue.identifier
-      : task.provider === 'jira'
+      : task.provider === 'jira' || task.provider === 'kerjan'
         ? task.issue.key
         : `#${task.issue.number}`
   const status =
     task.provider === 'linear'
       ? task.issue.state.name
-      : task.provider === 'jira'
+      : task.provider === 'jira' || task.provider === 'kerjan'
         ? task.issue.status.name
         : task.issue.state
   return {

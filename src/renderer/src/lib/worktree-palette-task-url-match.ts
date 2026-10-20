@@ -13,6 +13,7 @@ import {
 import { githubRepoIdentityKey } from '../../../shared/github/repository-identity-key'
 import { parseGitLabIssueOrMRLink } from '../../../shared/new-workspace/gitlab-links'
 import { parseJiraIssueUrl, type ParsedJiraIssueUrl } from '../../../shared/jira-issue-url'
+import { parseKerjanTicketUrl, type ParsedKerjanTicketUrl } from '../../../shared/kerjan-ticket-url'
 import { parseLinearIssueUrlIntent, type LinearIssueUrlIntent } from '../../../shared/linear/links'
 import type { Repo } from '../../../shared/repo-types'
 import { getWorkspaceAttachments } from '../../../shared/workspace-attachments'
@@ -24,17 +25,23 @@ import {
 } from './worktree-palette-gitlab-url-match'
 import { isWorktreePaletteQueryTooLarge } from './worktree-palette-query-bounds'
 import { buildWorktreePaletteTaskUrlResult } from './worktree-palette-task-url-result'
+import { worktreeMatchesJiraUrl } from './worktree-palette-jira-url-match'
 import type { PaletteSearchResult } from './worktree-palette-search'
 import { getPaletteWorktreeExecutionHostId } from './palette-repo-resolution'
+import {
+  getKerjanTaskUrlCreatePreview,
+  worktreeMatchesKerjanUrl
+} from './worktree-palette-kerjan-url-match'
 
 export type CmdJTaskSourceUrl =
   | { provider: 'github'; link: GitHubIssueOrPRLink }
   | { provider: 'linear'; intent: LinearIssueUrlIntent }
   | { provider: 'gitlab'; link: GitLabIssueOrMRLink }
   | { provider: 'jira'; parsed: ParsedJiraIssueUrl }
+  | { provider: 'kerjan'; parsed: ParsedKerjanTicketUrl }
 
 export type CmdJTaskUrlCreatePreview = {
-  provider: 'github' | 'gitlab' | 'jira'
+  provider: 'github' | 'gitlab' | 'jira' | 'kerjan'
   identifier: string
   subtitle: string
   createLabel: string
@@ -154,6 +161,12 @@ export function parseCmdJTaskSourceUrl(query: string): CmdJTaskSourceUrl | null 
     return { provider: 'jira', parsed: jira }
   }
 
+  // Why after Jira: Kerjan is self-hosted, so only its /ticket/KEY route identifies it.
+  const kerjan = parseKerjanTicketUrl(trimmed)
+  if (kerjan) {
+    return { provider: 'kerjan', parsed: kerjan }
+  }
+
   return null
 }
 
@@ -187,6 +200,9 @@ export function getCmdJTaskUrlCreatePreview(
       kindLabel,
       createLabel: `Create worktree from ${kindLabel} ${project}${identifier}`
     }
+  }
+  if (intent.provider === 'kerjan') {
+    return getKerjanTaskUrlCreatePreview(intent.parsed)
   }
   return {
     provider: 'jira',
@@ -248,23 +264,6 @@ function worktreeMatchesLinearUrl(worktree: Worktree, intent: LinearIssueUrlInte
   })
 }
 
-function worktreeMatchesJiraUrl(worktree: Worktree, parsed: ParsedJiraIssueUrl): boolean {
-  return getWorkspaceAttachments(worktree).some((item) => {
-    if (item.provider !== 'jira') {
-      return false
-    }
-    const linkedUrl = item.url ? parseJiraIssueUrl(item.url) : null
-    if (linkedUrl) {
-      return (
-        linkedUrl.issueKey === parsed.issueKey &&
-        linkedUrl.origin === parsed.origin &&
-        linkedUrl.sitePath === parsed.sitePath
-      )
-    }
-    return (item.identifier ?? item.jiraIdentifier)?.toUpperCase() === parsed.issueKey
-  })
-}
-
 export function matchWorktreePaletteTaskUrl(args: {
   worktree: Worktree
   intent: CmdJTaskSourceUrl
@@ -306,13 +305,17 @@ export function matchWorktreePaletteTaskUrl(args: {
       text: `${intent.link.type === 'mr' ? 'MR' : 'Issue'} #${intent.link.number}`
     })
   }
-  if (!worktreeMatchesJiraUrl(worktree, intent.parsed)) {
+  const matched =
+    intent.provider === 'kerjan'
+      ? worktreeMatchesKerjanUrl(worktree, intent.parsed)
+      : worktreeMatchesJiraUrl(worktree, intent.parsed)
+  if (!matched) {
     return null
   }
   return buildWorktreePaletteTaskUrlResult({
     worktreeId: worktree.id,
     ...(worktreeHostId ? { worktreeHostId } : {}),
     labelKind: 'issue',
-    text: intent.parsed.issueKey
+    text: intent.provider === 'kerjan' ? intent.parsed.ticketKey : intent.parsed.issueKey
   })
 }

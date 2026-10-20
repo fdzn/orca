@@ -19,10 +19,12 @@ export const REFERENCE_COMMAND_SPECS: CommandSpec[] = [
     repeatableFlags: ['url'],
     notes: [
       'Bare keys resolve Jira issues on the selected execution-host Jira site; use --reference-site to choose one explicitly. Other providers require full URLs.',
-      'Existing links are unchanged; all inputs are validated and Jira keys resolved before writing. Full URLs do not require Jira lookup.'
+      'Existing links are unchanged; all inputs are validated and Jira keys resolved before writing. Full URLs do not require Jira lookup.',
+      'Kerjan tickets need their full <site>/ticket/<KEY> URL; Orca adds the title when that site is connected.'
     ],
     examples: [
       'orca reference add https://github.com/acme/api/pull/5123 https://linear.app/acme/issue/STA-1234 --worktree name:api',
+      'orca reference add https://kerjan.example.com/ticket/OMX-40 --worktree name:api',
       'orca reference add ENG-123 --reference-site <id> --worktree name:api'
     ]
   },

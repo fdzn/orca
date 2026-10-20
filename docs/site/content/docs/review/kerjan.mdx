@@ -1,0 +1,65 @@
+---
+title: Kerjan tickets
+description: Connect a Kerjan site, work Kerjan tickets from Orca and its CLI, and link them to worktrees and orchestration tasks.
+---
+
+import { Callout } from '@/components/docs/prose'
+
+Kerjan sits next to GitHub, Linear, and Jira as a task source. Read tickets, move Tasks, comment, assign, and link tickets to worktrees without leaving Orca.
+
+## Connect a Kerjan site
+
+1. In Kerjan, open **Account** (`/account`), and under **Your tokens** create a personal token. Kerjan asks for the code from your authenticator app first. The token starts with `kjt_` and expires after 90 days.
+2. In Orca, open **Settings → Integrations** and click **Connect Kerjan** on the Kerjan card. The same dialog opens from **Settings → Tasks** (Kerjan → **Add Kerjan access**) and from the **Tasks** page when Kerjan is the selected source.
+3. Enter your Kerjan site URL (for example `https://kerjan.example.com`; it must start with `http://` or `https://`) and paste the token.
+4. Click **Connect**. Orca checks the token with Kerjan; if Kerjan refuses it, the dialog shows Kerjan's message as is.
+
+Once connected, the Kerjan card shows the member you signed in as, their email, and the site URL:
+
+- **Test connection** asks Kerjan again with the saved token. Settings only reads the saved token when you click it, so opening Settings does not trigger a keychain prompt.
+- **Replace token** opens the dialog again, with the site URL filled in, to save a new token before the old one expires.
+- The unlink button disconnects Kerjan and deletes the saved token.
+
+Orca keeps one Kerjan connection. When Kerjan rejects the token, for example after it expires, Orca removes it and Kerjan shows as not connected until you connect again with a new token. If that happens during **Test connection**, the card shows **Reconnect needed**, and **Reconnect** opens the dialog with your site URL filled in. If Orca cannot read the saved token (for example, the keychain refuses), the card also offers **Reconnect**.
+
+<Callout title="Where credentials live">
+  The token is encrypted with the OS keychain where available and stored on the machine that runs
+  Orca's runtime, including SSH hosts. It is only sent to your Kerjan site. Revoke it in Kerjan if
+  you stop using Orca.
+</Callout>
+
+## Workspaces, tickets, and status
+
+- Tickets are listed per Kerjan **workspace**; the workspace code is also the ticket key prefix (`OMX-40` lives in `OMX`).
+- Kerjan has Epics, Stories, and Tasks. Only **Tasks** take a status change, to `todo`, `in_progress`, or `done`; a Story or Epic status follows its Tasks. `done` is final and needs an assignee.
+- Acceptance criteria are part of the ticket description, under `## Acceptance Criteria`.
+- Workspaces still synced from Jira are read-only until cutover; Kerjan rejects writes to them.
+
+## From the CLI
+
+```bash
+# Connect without putting the token on the command line
+orca kerjan connection connect --url https://kerjan.example.com --token-stdin < token.txt
+orca kerjan connection test
+
+orca kerjan workspaces
+orca kerjan list --workspace OMX --mine --status in_progress
+orca kerjan issue OMX-40
+orca kerjan comment OMX-40 --body "Fix is on staging"
+orca kerjan status OMX-40 done --comment "Shipped in <pr-url>"
+orca kerjan assign OMX-40 --me
+```
+
+`--token-stdin` reads the token from stdin; you can also set `ORCA_KERJAN_TOKEN`. Every command accepts `--json`, and `--environment` to run against a paired Orca server.
+
+## Link tickets to worktrees and tasks
+
+- Attach a ticket by its full URL: `orca reference add https://kerjan.example.com/ticket/OMX-40 --worktree name:api`, or `orca worktree create --name fix --reference https://kerjan.example.com/ticket/OMX-40`. Orca adds the ticket title when that site is connected.
+- Start an orchestration task from a ticket: `orca orchestration task-create --kerjan OMX-40`. The task is titled `OMX-40: <title>`, and its spec carries the ticket URL, status, and description, after any `--spec` text you add.
+
+Agents learn these commands from the bundled `orca-kerjan` skill (`orca skills get orca-kerjan`).
+
+## Next steps
+
+- [Jira items drawer](/docs/review/jira) — the same flow against Jira.
+- [Hosted reviews, issues & Actions](/docs/review/github) — hand off the worktree to a hosted review once the ticket is in progress.

@@ -1,4 +1,7 @@
-import { assertWorkspaceAttachmentWriteCapability } from '../../runtime/runtime-workspace-attachment-capabilities'
+import {
+  assertKerjanLinkCapability,
+  assertWorkspaceAttachmentWriteCapability
+} from '../../runtime/runtime-workspace-attachment-capabilities'
 import { getWorkspaceAttachments } from '../../../../shared/workspace-attachments'
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../types'
@@ -71,6 +74,7 @@ export function createFolderWorkspaceMutationActions(
         // Why: a new folder has no row yet, so creation goes to the host the caller picked.
         const target = runtimeTargetForOwnerEnvironment(options.runtimeEnvironmentId)
         await assertWorkspaceAttachmentWriteCapability(target, args)
+        await assertKerjanLinkCapability(target, args.linkedTask, args.linkedTaskSourceContext)
         if (
           target.kind === 'environment' &&
           (args.linkedTask?.provider === 'jira' ||
@@ -153,17 +157,18 @@ export function createFolderWorkspaceMutationActions(
       if (target.kind === 'environment' && updates.linkedItems !== undefined) {
         await assertWorkspaceAttachmentWriteCapability(target, updates)
       }
-      // Why: same gate as folderWorkspace.create — an older paired runtime would drop the Jira link silently.
-      if (
-        target.kind === 'environment' &&
-        (updates.linkedTask?.provider === 'jira' ||
-          updates.linkedTaskSourceContext?.provider === 'jira')
-      ) {
-        await assertRuntimeEnvironmentCapability(
-          target.environmentId,
-          WORKTREE_LINKED_WORK_ITEM_CONTEXT_RUNTIME_CAPABILITY,
-          'Update the remote runtime to link Jira'
-        )
+      // Why env-only: a local write must reach IPC in the same tick, keeping optimistic order.
+      if (target.kind === 'environment') {
+        const { linkedTask, linkedTaskSourceContext } = updates
+        await assertKerjanLinkCapability(target, linkedTask, linkedTaskSourceContext)
+        // Why: same gate as folderWorkspace.create — an older paired runtime would drop the Jira link silently.
+        if (linkedTask?.provider === 'jira' || linkedTaskSourceContext?.provider === 'jira') {
+          await assertRuntimeEnvironmentCapability(
+            target.environmentId,
+            WORKTREE_LINKED_WORK_ITEM_CONTEXT_RUNTIME_CAPABILITY,
+            'Update the remote runtime to link Jira'
+          )
+        }
       }
       const updateTicket = folderWorkspaceUpdates.begin(
         updateIdentity,

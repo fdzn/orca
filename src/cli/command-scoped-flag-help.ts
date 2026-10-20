@@ -18,6 +18,46 @@ const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
     'include-archived': '--include-archived     Include archived workspaces',
     limit: '--limit <n>            Maximum matching workspaces (default 50)'
   },
+  'kerjan connection connect': {
+    url: '--url <base>           Kerjan site URL, e.g. https://kerjan.example.com',
+    'token-stdin': '--token-stdin          Read the personal access token from stdin'
+  },
+  'kerjan list': {
+    workspace: '--workspace <code>     Kerjan workspace code; see orca kerjan workspaces',
+    status: '--status <status>      todo|in_progress|ready_for_qa|testing|done|canceled',
+    kind: '--kind <kind>          epic|story|task',
+    type: '--type <type>          Task type: dev|qa|bug',
+    sprint: '--sprint <id>          Sprint id from orca kerjan sprints',
+    assignee: '--assignee <memberId>  Member id from orca kerjan members',
+    mine: '--mine                 Only tickets assigned to the connected member',
+    query: '--query <text>         Match key, title, or description',
+    limit: '--limit <n>            Maximum tickets (at most 1000)'
+  },
+  'kerjan sprints': {
+    workspace: '--workspace <code>     Kerjan workspace code; see orca kerjan workspaces'
+  },
+  'kerjan members': {
+    workspace: '--workspace <code>     Limit to members of one Kerjan workspace'
+  },
+  'kerjan issue': {
+    key: '--key <key|url>        Kerjan ticket key or URL; also accepted positionally'
+  },
+  'kerjan comment': {
+    key: '--key <key|url>        Kerjan ticket key or URL; also accepted positionally',
+    body: '--body <text>          Comment markdown',
+    'body-stdin': '--body-stdin           Read the comment from stdin'
+  },
+  'kerjan status': {
+    key: '--key <key|url>        Kerjan ticket key or URL; also accepted positionally',
+    to: '--to <status>          todo|in_progress|done; also accepted positionally',
+    comment: '--comment <text>       Kerjan comment posted with the status change'
+  },
+  'kerjan assign': {
+    key: '--key <key|url>        Kerjan ticket key or URL; also accepted positionally',
+    member: '--member <id>          Member id; also accepted positionally',
+    me: '--me                   Assign the connected member',
+    none: '--none                 Clear the assignee'
+  },
   'worktree create': {
     reference:
       '--reference <url-or-jira-key> Attach an issue/review URL or Jira key; repeat for several',
@@ -25,6 +65,10 @@ const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
     pr: '--pr <number>          Linked GitHub pull request number',
     'gitlab-issue': '--gitlab-issue <number|url> Linked GitLab issue in the source project',
     'gitlab-mr': '--gitlab-mr <number|url> Linked GitLab merge request in the source project'
+  },
+  'orchestration task-create': {
+    kerjan:
+      '--kerjan <key|url>     Build the task from a Kerjan ticket; --spec becomes optional extra context'
   },
   'skills get': {
     full: '--full                 Print the full guide with bundled references',

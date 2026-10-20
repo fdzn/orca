@@ -182,7 +182,7 @@ export const WORKTREE_HANDLERS: Record<string, CommandHandler> = {
       ? await resolveReferenceInputs(context, referenceInputs)
       : undefined
     if (linkedItems) {
-      await assertReferenceWritesSupported(client)
+      await assertReferenceWritesSupported(client, linkedItems)
     }
     const create = {
       repo,

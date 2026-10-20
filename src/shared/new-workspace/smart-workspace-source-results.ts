@@ -1,6 +1,7 @@
 import type { GitHubWorkItem } from '../github/work-item-types'
 import type { GitLabWorkItem } from '../gitlab-types'
 import type { JiraIssue } from '../jira-types'
+import type { KerjanIssue } from '../kerjan-types'
 import type { LinearIssue } from '../linear/issue-types'
 import type { LinearCollectionResult } from '../linear/workspace-types'
 import type { BaseRefSearchResult } from '../repo-types'
@@ -28,6 +29,7 @@ export type SmartWorkspaceSourceRow =
   | { kind: 'branch'; value: string; refName: string; localBranchName: string }
   | { kind: 'linear'; value: string; issue: LinearIssue }
   | { kind: 'jira'; value: string; issue: JiraIssue }
+  | { kind: 'kerjan'; value: string; issue: KerjanIssue }
 
 type LinearIssueSourceInput = LinearIssue[] | LinearCollectionResult<LinearIssue> | null | undefined
 
@@ -212,6 +214,8 @@ export function buildSmartWorkspaceSourceRows({
   jiraIntent = false,
   jiraIssue,
   jiraIssues = [],
+  kerjanIntent = false,
+  kerjanIssue,
   linearAvailable,
   linearIssues,
   linearUrlIntentOwnsResults = false,
@@ -228,6 +232,8 @@ export function buildSmartWorkspaceSourceRows({
   jiraIntent?: boolean
   jiraIssue?: JiraIssue | null
   jiraIssues?: JiraIssue[]
+  kerjanIntent?: boolean
+  kerjanIssue?: KerjanIssue | null
   linearAvailable: boolean
   linearIssues: LinearIssueSourceInput
   linearUrlIntentOwnsResults?: boolean
@@ -238,6 +244,11 @@ export function buildSmartWorkspaceSourceRows({
   // Why: a pasted issue URL resolves to exactly one issue — every other source is noise.
   if (jiraIntent) {
     return jiraIssue ? [toJiraSourceRow(jiraIssue)] : []
+  }
+  if (kerjanIntent) {
+    return kerjanIssue
+      ? [{ kind: 'kerjan', value: `kerjan-${kerjanIssue.key}`, issue: kerjanIssue }]
+      : []
   }
   if (!isSmartWorkspaceSourceQueryWithinLimit(value)) {
     return []

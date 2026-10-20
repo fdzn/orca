@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildJiraWorkspaceSource,
+  buildKerjanWorkspaceSource,
   buildLinearWorkspaceSource,
   buildWorkspaceSourceSelection,
   getWorkspaceSourceName,
@@ -65,6 +66,35 @@ describe('workspace source policy', () => {
       title: 'Fix Jira card details',
       url: 'https://company.atlassian.net/browse/ORCA-123',
       jiraIdentifier: 'ORCA-123'
+    })
+  })
+
+  it('builds a keyed Kerjan source that infers, labels, and names like other trackers', () => {
+    const kerjan = buildKerjanWorkspaceSource({
+      key: 'OMX-40',
+      title: 'Fix login',
+      url: 'https://kerjan.example.com/ticket/OMX-40'
+    })
+    expect(kerjan).toEqual({
+      provider: 'kerjan',
+      type: 'issue',
+      number: 0,
+      title: 'Fix login',
+      url: 'https://kerjan.example.com/ticket/OMX-40',
+      kerjanIdentifier: 'OMX-40'
+    })
+    const { provider: _provider, ...inferred } = kerjan
+    expect(getWorkspaceSourceProvider(inferred)).toBe('kerjan')
+    expect(getWorkspaceSourceProvider({ ...inferred, kerjanIdentifier: undefined })).toBe('kerjan')
+    expect(buildWorkspaceSourceSelection({ linkedWorkItem: kerjan })).toEqual({
+      kind: 'kerjan',
+      label: 'Fix login',
+      url: 'https://kerjan.example.com/ticket/OMX-40'
+    })
+    expect(shouldPreserveWorkspaceSourceOnRepoChange(kerjan)).toBe(true)
+    expect(getWorkspaceSourceName(kerjan)).toEqual({
+      seedName: 'omx-40-fix-login',
+      displayName: 'OMX-40 Fix login'
     })
   })
 

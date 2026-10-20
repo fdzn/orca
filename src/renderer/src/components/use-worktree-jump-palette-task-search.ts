@@ -40,6 +40,8 @@ export function useWorktreeJumpPaletteTaskSearch({
   const connectionScope = useAppStore(
     useShallow((state) => ({
       jira: state.jiraConnectionRevisions,
+      kerjan: state.kerjanStatus,
+      kerjanWorkspace: state.kerjanSelectedWorkspaceCode,
       linear: state.linearStatus,
       linearContext: state.linearStatusContextKey
     }))

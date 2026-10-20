@@ -17,6 +17,7 @@ import { parseGitHubIssueOrPRLink } from '../../../../shared/github/links'
 import { parseGitLabIssueOrMRLink } from '../../../../shared/new-workspace/gitlab-links'
 import { parseLinearIssueInput } from '../../../../shared/linear/links'
 import { parseJiraIssueUrl } from '../../../../shared/jira-issue-url'
+import { parseKerjanTicketUrl } from '../../../../shared/kerjan-ticket-url'
 import { isWorkItemLinkQueryTooLarge } from '../../../../shared/new-workspace/work-item-link-query-bounds'
 
 export const ATTACHMENT_INPUT_KINDS = [
@@ -60,6 +61,7 @@ export function workspaceAttachmentProviderLabel(item: WorkspaceAttachment): str
     gitlab: 'GitLab',
     linear: 'Linear',
     jira: 'Jira',
+    kerjan: 'Kerjan',
     bitbucket: 'Bitbucket',
     'azure-devops': 'Azure DevOps',
     gitea: 'Gitea'
@@ -86,6 +88,7 @@ export function parseWorkspaceAttachmentInput(
   const github = parseGitHubIssueOrPRLink(value)
   const gitlab = parseGitLabIssueOrMRLink(value)
   const jira = parseJiraIssueUrl(value)
+  const kerjan = jira ? null : parseKerjanTicketUrl(value)
   const linear = parseLinearIssueInput(value)
   if (/^https?:\/\//i.test(value)) {
     const otherReview = parseOtherReviewUrl(value)
@@ -105,6 +108,16 @@ export function parseWorkspaceAttachmentInput(
         number: 0,
         identifier: jira.issueKey,
         jiraIdentifier: jira.issueKey,
+        url: value
+      }
+    }
+    if (kerjan) {
+      return {
+        provider: 'kerjan',
+        type: 'issue',
+        number: 0,
+        identifier: kerjan.ticketKey,
+        kerjanIdentifier: kerjan.ticketKey,
         url: value
       }
     }

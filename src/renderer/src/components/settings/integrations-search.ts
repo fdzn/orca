@@ -192,6 +192,39 @@ export const getIntegrationsPaneSearchEntries = createLocalizedCatalog(() => [
   },
   {
     title: translate(
+      'auto.components.settings.integrations.search.kerjanTitle',
+      'Kerjan Integration'
+    ),
+    description: translate(
+      'auto.components.settings.integrations.search.kerjanDescription',
+      'Connect a Kerjan site or replace an expired Kerjan personal token.'
+    ),
+    keywords: [
+      ...translateSearchKeyword('auto.components.settings.integrations.search.kerjan', 'kerjan'),
+      ...translateSearchKeyword(
+        'auto.components.settings.integrations.search.c450244ad7',
+        'integration'
+      ),
+      ...translateSearchKeyword(
+        'auto.components.settings.integrations.search.personalToken',
+        'personal token'
+      ),
+      ...translateSearchKeyword(
+        'auto.components.settings.integrations.search.20540996ef',
+        'credentials'
+      ),
+      ...translateSearchKeyword(
+        'auto.components.settings.integrations.search.3c3d3d8ffa',
+        'connect'
+      ),
+      ...translateSearchKeyword(
+        'auto.components.settings.integrations.search.a626990bd2',
+        'disconnect'
+      )
+    ]
+  },
+  {
+    title: translate(
       'auto.components.settings.integrations.search.b027b4b318',
       'Linear Integration'
     ),

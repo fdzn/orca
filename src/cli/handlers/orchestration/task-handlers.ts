@@ -2,6 +2,8 @@ import type { CommandHandler } from '../../dispatch'
 import { printResult } from '../../format'
 import { getOptionalStringFlag, getRequiredStringFlag } from '../../flags'
 import { RuntimeClientError } from '../../runtime-client'
+import { readKerjanTicket } from '../../kerjan-target'
+import { buildKerjanTaskSpec, kerjanTaskTitle } from '../../kerjan-task-spec'
 import { abbreviateOrchestrationTasks } from '../../../shared/orchestration-task-summary'
 import { callOrchestrationMutation } from './mutation-request'
 import { resolveCoordinatorTerminalHandle, runScopedSessionCaller } from './terminal-identity'
@@ -17,14 +19,23 @@ const TASK_STATUS_VALUES = [
 
 export const ORCHESTRATION_TASK_HANDLERS: Record<string, CommandHandler> = {
   'orchestration task-create': async ({ flags, client, cwd, json }) => {
+    const kerjanInput = getOptionalStringFlag(flags, 'kerjan')
+    const spec = getOptionalStringFlag(flags, 'spec')
+    if (!kerjanInput && !spec) {
+      throw new RuntimeClientError('invalid_argument', 'Missing required --spec (or --kerjan).')
+    }
+    // Why: the ticket folds into a plain spec, so taskCreate needs no Kerjan awareness on the host.
+    const kerjanIssue = kerjanInput ? (await readKerjanTicket(client, kerjanInput)).result : null
     const callerTerminalHandle = await resolveCoordinatorTerminalHandle(flags, cwd, client)
     const result = await callOrchestrationMutation<{ task: { id: string; status: string } }>(
       client,
       flags,
       'orchestration.taskCreate',
       {
-        spec: getRequiredStringFlag(flags, 'spec'),
-        taskTitle: getOptionalStringFlag(flags, 'task-title'),
+        spec: kerjanIssue ? buildKerjanTaskSpec(kerjanIssue, spec) : spec,
+        taskTitle:
+          getOptionalStringFlag(flags, 'task-title') ??
+          (kerjanIssue ? kerjanTaskTitle(kerjanIssue) : undefined),
         displayName: getOptionalStringFlag(flags, 'display-name'),
         deps: getOptionalStringFlag(flags, 'deps'),
         parent: getOptionalStringFlag(flags, 'parent'),

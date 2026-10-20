@@ -1,5 +1,6 @@
 import { assertAutomationExtraAgentArgs } from '../automation-extra-agent-args-record'
 import { isTuiAgent } from '../tui-agent-config'
+import { isTaskProvider } from '../task-providers'
 import type { Automation, AutomationRun } from '../automations-types'
 import { getAutomationRunRepoId } from '../automation-run-identity'
 import {
@@ -228,7 +229,7 @@ function parseContext(value: unknown, kind: 'workspace-run' | 'task-source'): vo
     )
     requiredString(record.repoId, 'orcad_migration_dormant_automation_context_repo_invalid')
     requiredString(record.path, 'orcad_migration_dormant_automation_context_path_invalid')
-  } else if (!['github', 'gitlab', 'linear', 'jira'].includes(String(record.provider))) {
+  } else if (!isTaskProvider(record.provider)) {
     throw new Error('orcad_migration_dormant_automation_context_provider_invalid')
   }
 }

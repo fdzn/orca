@@ -29,6 +29,12 @@ type StoreState = {
   checkJiraConnection: () => Promise<void>
   testJiraConnection: () => Promise<{ ok: boolean; error?: string }>
   disconnectJira: () => Promise<void>
+  kerjanStatus: { connected: boolean }
+  kerjanStatusChecked: boolean
+  kerjanStatusContextKey: string | null
+  checkKerjanConnection: () => Promise<void>
+  testKerjanConnection: () => Promise<{ ok: boolean; error?: string }>
+  disconnectKerjan: () => Promise<void>
 }
 
 const { storeState } = vi.hoisted(() => ({
@@ -50,6 +56,10 @@ vi.mock('@/components/linear-api-key-dialog', () => ({
 
 vi.mock('@/components/jira-connect-dialog', () => ({
   JiraConnectDialog: () => null
+}))
+
+vi.mock('@/components/kerjan-connect-dialog', () => ({
+  KerjanConnectDialog: () => null
 }))
 
 function makePreflightStatus(overrides: Partial<PreflightStatus> = {}): PreflightStatus {
@@ -107,7 +117,13 @@ function installStore(preflightStatus: PreflightStatus): void {
     jiraStatusContextKey: providerContextKey,
     checkJiraConnection: vi.fn(async () => {}),
     testJiraConnection: vi.fn(async () => ({ ok: true })),
-    disconnectJira: vi.fn(async () => {})
+    disconnectJira: vi.fn(async () => {}),
+    kerjanStatus: { connected: false },
+    kerjanStatusChecked: true,
+    kerjanStatusContextKey: providerContextKey,
+    checkKerjanConnection: vi.fn(async () => {}),
+    testKerjanConnection: vi.fn(async () => ({ ok: true })),
+    disconnectKerjan: vi.fn(async () => {})
   }
 }
 
@@ -179,12 +195,13 @@ describe('ConnectIntegrationsList', () => {
 
     expect(markup).toContain('GitHub')
     expect(markup).toContain('issues available as tasks')
-    expect(markup).toContain('add Linear or Jira if your team plans work there')
+    expect(markup).toContain('add Linear, Jira, or Kerjan if your team plans work there')
     expect(markup).not.toContain('Use GitHub issues')
     // The step is done but stays expanded so Linear/Jira remain discoverable
     // for teams that plan work in a dedicated tracker.
     expect(markup).toContain('Add Linear access')
     expect(markup).toContain('Connect Jira')
+    expect(markup).toContain('Connect Kerjan')
   })
 
   it('offers GitHub and GitLab as task sources when review came from a non-task provider', async () => {

@@ -16,7 +16,22 @@ describe('task providers', () => {
   })
 
   it('falls back to all providers when none are visible', () => {
-    expect(normalizeVisibleTaskProviders([])).toEqual(['github', 'gitlab', 'linear', 'jira'])
+    expect(normalizeVisibleTaskProviders([])).toEqual([
+      'github',
+      'gitlab',
+      'linear',
+      'jira',
+      'kerjan'
+    ])
+  })
+
+  it('keeps Kerjan available while disconnected so it stays connectable from Tasks', () => {
+    expect(
+      filterAvailableTaskProviders(['linear', 'kerjan'], {
+        gitlabInstalled: false,
+        linearConnected: false
+      })
+    ).toEqual(['kerjan'])
   })
 
   it('restores a valid saved default when provider settings drifted', () => {

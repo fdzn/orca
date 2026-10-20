@@ -33,8 +33,11 @@ export function useTaskPageSourceSummary(model: TaskPageSourceAvailabilityPrelud
     hostLabelById,
     taskSourceHostAvailability,
     accountBackedTaskSourceHostId,
-    accountBackedTaskSourceHostAvailability
+    accountBackedTaskSourceHostAvailability,
+    kerjanSiteUrl
   } = model
+  const isAccountBackedSource =
+    taskSource === 'linear' || taskSource === 'jira' || taskSource === 'kerjan'
   const taskSourceAvailabilityNoticeByProvider = useMemo<
     Partial<Record<TaskProvider, TaskSourceAvailabilityNotice>>
   >(() => {
@@ -102,6 +105,13 @@ export function useTaskPageSourceSummary(model: TaskPageSourceAvailabilityPrelud
           sourceCount: 1,
           hostLabelById,
           hostAvailability: accountAvailability
+        }) ?? undefined,
+      kerjan:
+        getTaskSourceAvailabilityNotice({
+          providerLabel: labelFor('kerjan'),
+          sourceCount: 1,
+          hostLabelById,
+          hostAvailability: accountAvailability
         }) ?? undefined
     }
   }, [
@@ -123,18 +133,20 @@ export function useTaskPageSourceSummary(model: TaskPageSourceAvailabilityPrelud
       provider: taskSource,
       providerLabel,
       repoContexts: taskSourceRepoContexts,
-      hostAvailability:
-        taskSource === 'linear' || taskSource === 'jira'
-          ? accountBackedTaskSourceHostAvailability
-          : taskSourceHostAvailability,
+      hostAvailability: isAccountBackedSource
+        ? accountBackedTaskSourceHostAvailability
+        : taskSourceHostAvailability,
       accountHostId: accountBackedTaskSourceHostId,
       hostLabelById,
       selectedRepoCount: selectedRepos.length,
       linearWorkspaceName:
         selectedLinearWorkspace?.organizationName ?? selectedLinearWorkspace?.id ?? null,
-      jiraSiteName: selectedJiraSite?.displayName ?? selectedJiraSite?.siteUrl ?? null
+      jiraSiteName: selectedJiraSite?.displayName ?? selectedJiraSite?.siteUrl ?? null,
+      kerjanSiteName: kerjanSiteUrl
     })
   }, [
+    isAccountBackedSource,
+    kerjanSiteUrl,
     selectedJiraSite,
     selectedLinearWorkspace,
     selectedRepos.length,
@@ -151,17 +163,14 @@ export function useTaskPageSourceSummary(model: TaskPageSourceAvailabilityPrelud
       sourceOptions.find((source) => source.id === taskSource)?.label ?? taskSource
     return getTaskSourceAvailabilityNotice({
       providerLabel,
-      sourceCount:
-        taskSource === 'linear' || taskSource === 'jira'
-          ? 1
-          : Math.max(1, taskSourceRepoContexts.length),
-      hostAvailability:
-        taskSource === 'linear' || taskSource === 'jira'
-          ? accountBackedTaskSourceHostAvailability
-          : taskSourceHostAvailability,
+      sourceCount: isAccountBackedSource ? 1 : Math.max(1, taskSourceRepoContexts.length),
+      hostAvailability: isAccountBackedSource
+        ? accountBackedTaskSourceHostAvailability
+        : taskSourceHostAvailability,
       hostLabelById
     })
   }, [
+    isAccountBackedSource,
     accountBackedTaskSourceHostAvailability,
     hostLabelById,
     sourceOptions,

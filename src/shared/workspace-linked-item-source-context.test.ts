@@ -110,4 +110,39 @@ describe('workspace linked-item source context', () => {
       )
     ).toBe(true)
   })
+
+  it('requires Kerjan key, site URL, and workspace code to agree', () => {
+    const item: WorkspaceLinkedItem = {
+      provider: 'kerjan',
+      type: 'issue',
+      number: 0,
+      title: 'Fix login',
+      url: 'https://kerjan.example.com/app/ticket/OMX-40',
+      kerjanIdentifier: 'OMX-40'
+    }
+    const context: TaskSourceContext = {
+      kind: 'task-source',
+      provider: 'kerjan',
+      projectId: 'kerjan',
+      hostId: 'local',
+      providerIdentity: {
+        provider: 'kerjan',
+        siteUrl: 'https://kerjan.example.com/app/',
+        workspaceCode: 'omx'
+      }
+    }
+    expect(isWorkspaceLinkedItemSourceContextMatch(item, context)).toBe(true)
+    for (const providerIdentity of [
+      { provider: 'kerjan', siteUrl: 'https://kerjan.example.com', workspaceCode: 'OMX' },
+      { provider: 'kerjan', siteUrl: 'https://kerjan.example.com/app', workspaceCode: 'ENG' },
+      { provider: 'kerjan', siteUrl: null, workspaceCode: 'OMX' }
+    ] as const) {
+      expect(isWorkspaceLinkedItemSourceContextMatch(item, { ...context, providerIdentity })).toBe(
+        false
+      )
+    }
+    expect(
+      isWorkspaceLinkedItemSourceContextMatch({ ...item, kerjanIdentifier: 'OMX-41' }, context)
+    ).toBe(false)
+  })
 })

@@ -25,6 +25,7 @@ import {
 import type { RuntimeClientTarget } from '../../../../../../shared/runtime-client-target'
 import { runtimeTargetForRepoOwner } from '@/lib/repo-runtime-owner'
 import { WORKTREE_LINKED_WORK_ITEM_CONTEXT_RUNTIME_CAPABILITY } from '../../../../../../shared/protocol-version'
+import { assertKerjanLinkCapability } from '@/runtime/runtime-workspace-attachment-capabilities'
 import { showLocalBaseRefUpdateSuggestionToast } from '@/components/sidebar/local-base-ref-suggestion-toast'
 import { requestWorktreeBaseFallbackNotice } from '@/components/worktree-base-fallback-notice'
 import { showLocalBaseRefRefreshToast } from './local-base-ref-refresh-toast'
@@ -221,6 +222,11 @@ export function createCreateWorktree(
           'Update the remote runtime to link Jira'
         )
       }
+      await assertKerjanLinkCapability(
+        target,
+        options?.linkedWorkItem,
+        options?.linkedTaskSourceContext
+      )
       if (
         options?.provisionedRoot &&
         target.kind === 'environment' &&

@@ -8,12 +8,13 @@ import {
   resolveVisibleTaskProvider
 } from '../../../../shared/task-providers'
 import { JiraIcon } from '@/components/icons/JiraIcon'
+import { KerjanIcon } from '@/components/icons/KerjanIcon'
 import { LinearIcon } from '@/components/icons/LinearIcon'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store'
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSubsectionHeader } from './SettingsFormControls'
-import { CodeHostSetupSteps, JiraSetupSteps } from './TaskSourceSimpleSetup'
+import { CodeHostSetupSteps, JiraSetupSteps, KerjanSetupSteps } from './TaskSourceSimpleSetup'
 import { TaskSourceLinearSetup } from './TaskSourceLinearSetup'
 import { TaskSourceProviderCard } from './TaskSourceProviderCard'
 import {
@@ -22,6 +23,7 @@ import {
 } from './task-source-setup-state'
 import {
   JIRA_INTEGRATION_SECTION_ID,
+  KERJAN_INTEGRATION_SECTION_ID,
   LINEAR_INTEGRATION_SECTION_ID
 } from './task-provider-integration-section-ids'
 import { getTasksPaneSearchKeywords } from './tasks-search'
@@ -89,6 +91,18 @@ const PROVIDER_META: Record<
       )
     },
     Icon: ({ className }) => <JiraIcon className={className} />
+  },
+  kerjan: {
+    get label() {
+      return translate('auto.components.settings.TasksPane.kerjanLabel', 'Kerjan')
+    },
+    get description() {
+      return translate(
+        'auto.components.settings.TasksPane.kerjanDescription',
+        'Connect a Kerjan site and show its tickets in Tasks.'
+      )
+    },
+    Icon: KerjanIcon
   }
 }
 
@@ -97,6 +111,7 @@ export function TasksPane({ settings, updateSettings }: TasksPaneProps): React.J
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
+  const checkKerjanConnection = useAppStore((s) => s.checkKerjanConnection)
   const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
   const readinessByProvider = useTaskSourceProviderReadiness(visibleProviders)
   useIntegrationProviderStatusRefresh()
@@ -226,6 +241,16 @@ export function TasksPane({ settings, updateSettings }: TasksPaneProps): React.J
                     onToggleVisible={() => toggleProvider('jira')}
                     onConnected={() => void checkJiraConnection()}
                     onOpenIntegrations={() => openIntegrations(JIRA_INTEGRATION_SECTION_ID)}
+                  />
+                ) : provider === 'kerjan' ? (
+                  <KerjanSetupSteps
+                    connected={readiness.connected}
+                    checking={readiness.checking}
+                    visible={visible}
+                    canHide={canHide}
+                    onToggleVisible={() => toggleProvider('kerjan')}
+                    onConnected={() => void checkKerjanConnection()}
+                    onOpenIntegrations={() => openIntegrations(KERJAN_INTEGRATION_SECTION_ID)}
                   />
                 ) : (
                   <CodeHostSetupSteps

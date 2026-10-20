@@ -6,6 +6,7 @@ import {
   buildGitLabWorkspaceSource,
   buildLinearWorkspaceSource,
   buildJiraWorkspaceSource,
+  buildKerjanWorkspaceSource,
   type WorkspaceSourceLinkedItem
 } from '../../../../shared/new-workspace/workspace-source'
 import { parseGitHubIssueOrPRLink } from '../../../../shared/github/links'
@@ -16,7 +17,7 @@ import type { RowEntry } from './smart-workspace-name-field-model'
 export type WorkItemSourceContexts = Record<
   'github' | 'gitlab' | 'linear' | 'jira',
   TaskSourceContext | null
->
+> & { kerjan?: TaskSourceContext | null }
 export function resolveWorkItemSourceRow(
   row: RowEntry,
   contexts: WorkItemSourceContexts,
@@ -94,6 +95,17 @@ export function resolveWorkItemSourceRow(
     return context
       ? {
           ...buildJiraWorkspaceSource(row.issue),
+          identifier: row.issue.key,
+          taskSourceContext: context
+        }
+      : null
+  }
+  if (row.kind === 'kerjan') {
+    // Why: only a context bound by the URL lookup proves which site and host the ticket came from.
+    const context = contexts.kerjan?.provider === 'kerjan' ? contexts.kerjan : null
+    return context
+      ? {
+          ...buildKerjanWorkspaceSource(row.issue),
           identifier: row.issue.key,
           taskSourceContext: context
         }

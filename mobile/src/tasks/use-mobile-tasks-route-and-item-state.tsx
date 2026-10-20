@@ -50,6 +50,7 @@ import {
 import { useMobileTasksItemState } from './use-mobile-tasks-item-state'
 import { useMobileJiraConnectionState } from './use-mobile-jira-connection-state'
 import type { JiraIssueFilter } from '../../../src/shared/jira-types'
+import { mobileSupportedTaskProviders } from './mobile-supported-task-providers'
 
 export function useMobileTasksRouteAndItemState() {
   const { hostId, taskSource } = useLocalSearchParams<{ hostId: string; taskSource?: string }>()
@@ -84,7 +85,7 @@ export function useMobileTasksRouteAndItemState() {
     })
   const [provider, setProvider] = useState<TaskProvider>('github')
   const [visibleProviders, setVisibleProviders] = useState<TaskProvider[]>(() =>
-    normalizeVisibleTaskProviders(undefined)
+    mobileSupportedTaskProviders(normalizeVisibleTaskProviders(undefined))
   )
   const [linearConnected, setLinearConnected] = useState(false)
   const [jiraConnection, setJiraConnection] = useMobileJiraConnectionState(client, connState)

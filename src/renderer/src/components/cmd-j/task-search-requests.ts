@@ -25,6 +25,7 @@ import { getTaskPageRepoSourceContext } from '../task-page-source-context'
 import { searchJiraIssuesByKeyOrText } from '../jira-key-or-text-search'
 import { bindTaskPageJiraItemSourceContext } from '../task-page-jira-item-source-context'
 import { makeCmdJTaskSearchResult, type CmdJTaskSearchResult } from './task-search-results'
+import { searchKerjanTasks } from './task-search-kerjan-request'
 
 const RESULT_LIMIT = 12
 export type CmdJTaskSearchRequest = {
@@ -147,15 +148,15 @@ export function createCmdJTaskSearchRequests(args: {
     if (filter.repoIds.length && !initialRepo) {
       continue
     }
-    for (const provider of ['linear', 'jira'] as const) {
+    for (const provider of ['linear', 'jira', 'kerjan'] as const) {
       if (!providers.includes(provider) || (provider === 'linear' && parsed.kind === 'ssh')) {
         continue
       }
-      // Jira credentials stay on the desktop for SSH repositories; runtime hosts own theirs.
+      // Jira/Kerjan credentials stay on the desktop for SSH repositories; runtime hosts own theirs.
       const hostId =
-        provider === 'jira'
-          ? resolveJiraSourceHostId({ workspaceHostId: requestedHostId })
-          : parsed.id
+        provider === 'linear'
+          ? parsed.id
+          : resolveJiraSourceHostId({ workspaceHostId: requestedHostId })
       const requestId = `${provider}:${hostId}`
       const target = ipcOrRuntimeTargetForHostId(hostId)
       if (!target || accountRequestIds.has(requestId)) {
@@ -183,9 +184,20 @@ export function createCmdJTaskSearchRequests(args: {
           if (signal.aborted) {
             return []
           }
+          const initialRepoId = initialRepo?.id ?? null
           return provider === 'linear'
-            ? searchLinear(source, target, query, signal, initialRepo?.id ?? null, hostLabel)
-            : searchJira(source, target, query, signal, initialRepo?.id ?? null, hostLabel)
+            ? searchLinear(source, target, query, signal, initialRepoId, hostLabel)
+            : provider === 'jira'
+              ? searchJira(source, target, query, signal, initialRepoId, hostLabel)
+              : searchKerjanTasks({
+                  source,
+                  target,
+                  query,
+                  signal,
+                  initialRepoId,
+                  hostLabel,
+                  limit: RESULT_LIMIT
+                })
         }
       })
     }

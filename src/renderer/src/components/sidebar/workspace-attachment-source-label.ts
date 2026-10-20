@@ -3,6 +3,7 @@ import { parseGitHubIssueOrPRLink } from '../../../../shared/github/links'
 import { parseGitLabIssueOrMRLink } from '../../../../shared/new-workspace/gitlab-links'
 import { parseLinearIssueInput } from '../../../../shared/linear/links'
 import { parseJiraIssueUrl } from '../../../../shared/jira-issue-url'
+import { parseKerjanTicketUrl } from '../../../../shared/kerjan-ticket-url'
 import { getWorkspaceAttachmentUrlScope } from '../../../../shared/workspace-attachment-normalization'
 
 function humanText(value: string | null | undefined): string | null {
@@ -59,6 +60,20 @@ export function getWorkspaceAttachmentSourceLabel(item: WorkspaceAttachment): st
             ? `${parsed.origin}${parsed.sitePath}`
             : null
       ),
+      source?.accountLabel
+    )
+  }
+  if (item.provider === 'kerjan') {
+    const parsed = item.url ? parseKerjanTicketUrl(item.url) : null
+    return joinSourceParts(
+      urlLabel(
+        identity?.provider === 'kerjan' && identity.siteUrl
+          ? identity.siteUrl
+          : parsed
+            ? `${parsed.origin}${parsed.basePath}`
+            : null
+      ),
+      identity?.provider === 'kerjan' ? identity.workspaceCode : null,
       source?.accountLabel
     )
   }

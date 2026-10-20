@@ -10,6 +10,7 @@ import { renderSmartWorkspaceCrossRepoDialog } from './smart-workspace-cross-rep
 import { renderSmartWorkspaceNameInput } from './smart-workspace-name-input-surface'
 import { renderSmartWorkspaceSourceResults } from './smart-workspace-source-results-surface'
 import { getJiraSourceStatusMessage } from './jira-source-status-message'
+import { KerjanSourceStatus } from './kerjan-source-status'
 import type { SmartWorkspaceNameFieldController } from './use-smart-workspace-name-field-controller'
 import { JiraProjectPicker } from '../jira-project-picker'
 
@@ -111,6 +112,9 @@ export function renderSmartWorkspaceNameField(
             </Button>
           ) : null}
         </div>
+      ) : null}
+      {controller.kerjanSource.intent ? (
+        <KerjanSourceStatus id={jiraStatusId} source={controller.kerjanSource} />
       ) : null}
       {unresolvedLinearUrlIntent ? (
         <div id={linearStatusId} role="status" aria-live="polite" className="sr-only">

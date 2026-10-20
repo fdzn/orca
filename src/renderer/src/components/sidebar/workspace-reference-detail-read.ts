@@ -4,6 +4,8 @@ import { PrioritySemaphore } from '../../../../shared/priority-semaphore'
 import { getRepoExecutionHostId } from '../../../../shared/execution-host'
 import { getTaskSourceCacheScope } from '../../../../shared/task-source-context'
 import { canReadWorkspaceReferenceReview } from './workspace-reference-review-source'
+import { getKerjanReadScope, kerjanCacheKey } from '@/store/slices/kerjan-read-coordination'
+import type { KerjanIssueDetail, KerjanTicketStatus } from '../../../../shared/kerjan-types'
 import { isWorkspaceRepositoryAttachment } from './worktree-attachment-editing'
 import {
   matchesWorkspaceReferenceUrl,
@@ -15,6 +17,14 @@ import {
 
 type Entry<T> = { data: T | null; fetchedAt: number; stale?: boolean }
 const reads = new PrioritySemaphore(3)
+const KERJAN_STATE_TYPES: Record<KerjanTicketStatus, WorkspaceReferenceDetails['stateType']> = {
+  todo: 'unstarted',
+  in_progress: 'started',
+  ready_for_qa: 'started',
+  testing: 'started',
+  done: 'completed',
+  canceled: 'canceled'
+}
 
 function lookup<T>(
   entry: Entry<T> | undefined,
@@ -61,7 +71,8 @@ export function getWorkspaceReferenceLookup(request: WorkspaceReferenceRequest, 
     return null
   }
   const scope = getTaskSourceCacheScope(sourceContext)
-  const identifier = item.identifier ?? item.linearIdentifier ?? item.jiraIdentifier
+  const identifier =
+    item.identifier ?? item.linearIdentifier ?? item.jiraIdentifier ?? item.kerjanIdentifier
   if (item.provider === 'linear' && identifier && sourceContext.provider === 'linear') {
     const workspaceId = getWorkspaceReferenceLinearWorkspaceId(
       item.linearWorkspaceId,
@@ -108,6 +119,26 @@ export function getWorkspaceReferenceLookup(request: WorkspaceReferenceRequest, 
                     : issue.status.categoryKey === 'new'
                       ? 'unstarted'
                       : undefined
+            }
+          : null
+    )
+  }
+  if (item.provider === 'kerjan' && identifier && sourceContext.provider === 'kerjan') {
+    const key = identifier.toUpperCase()
+    const cacheKey = kerjanCacheKey(
+      getKerjanReadScope(state.settings, sourceContext),
+      `issue::${key}`
+    )
+    return lookup(
+      state.kerjanIssueCache?.[cacheKey],
+      () => state.fetchKerjanIssue(key, { sourceContext }),
+      (issue: KerjanIssueDetail | null) =>
+        issue && issue.key === key && matchesWorkspaceReferenceUrl(item, issue.url)
+          ? {
+              title: issue.title,
+              url: issue.url,
+              stateName: issue.status.name,
+              stateType: KERJAN_STATE_TYPES[issue.statusKey]
             }
           : null
     )

@@ -12,7 +12,11 @@ import {
 import { WorktreeSet } from './rpc-contract/worktree-params'
 import { FolderWorkspaceUpdate } from './rpc-contract/folder-workspace-params'
 
-const pr = (number: number): WorkspaceAttachment => ({ provider: 'github', type: 'pr', number })
+const pr = (number: number): WorkspaceAttachment => ({
+  provider: 'github',
+  type: 'pr',
+  number
+})
 
 describe('workspace attachments', () => {
   it('reads old metadata and enriches matching collection entries without duplicate compatibility links', () => {
@@ -47,13 +51,19 @@ describe('workspace attachments', () => {
     )
     expect(updated.linkedPR).toBe(8)
     expect(getWorkspaceAttachments(updated)).toEqual([pr(8)])
-    const cleared = normalizeWorkspaceAttachmentUpdate(updated, { linkedItems: [] })
+    const cleared = normalizeWorkspaceAttachmentUpdate(updated, {
+      linkedItems: []
+    })
     expect(cleared.linkedPR).toBeNull()
     expect(getWorkspaceAttachments(cleared)).toEqual([])
   })
 
   it('honors a newly selected review across providers', () => {
-    const mr: WorkspaceAttachment = { provider: 'gitlab', type: 'mr', number: 20 }
+    const mr: WorkspaceAttachment = {
+      provider: 'gitlab',
+      type: 'mr',
+      number: 20
+    }
     const updated = normalizeWorkspaceAttachmentUpdate(
       { linkedPR: 7, linkedItems: [pr(7), mr] },
       { linkedItems: [pr(7), mr], linkedGitLabMR: 20 }
@@ -107,10 +117,14 @@ describe('workspace attachments', () => {
       url: 'https://github.com/a/repo/issues/7'
     }
     const existing = { linkedWorkItem: item, linkedIssue: 7 }
-    const removed = normalizeWorkspaceAttachmentUpdate(existing, { linkedIssue: null })
+    const removed = normalizeWorkspaceAttachmentUpdate(existing, {
+      linkedIssue: null
+    })
     expect(removed.linkedWorkItem).toBeNull()
     expect(getWorkspaceAttachments({ ...existing, ...removed })).toEqual([])
-    const genericRemoved = normalizeWorkspaceAttachmentUpdate(existing, { linkedWorkItem: null })
+    const genericRemoved = normalizeWorkspaceAttachmentUpdate(existing, {
+      linkedWorkItem: null
+    })
     expect(genericRemoved.linkedIssue).toBeNull()
     expect(getWorkspaceAttachments({ ...existing, ...genericRemoved })).toEqual([])
   })
@@ -130,7 +144,14 @@ describe('workspace attachments', () => {
       WorktreeSet.safeParse({
         worktree: 'wt',
         linkedItems: [
-          { ...pr(7), taskSourceContext: { provider: 'jira', projectId: 'wrong', hostId: 'local' } }
+          {
+            ...pr(7),
+            taskSourceContext: {
+              provider: 'jira',
+              projectId: 'wrong',
+              hostId: 'local'
+            }
+          }
         ]
       }).success
     ).toBe(false)
@@ -142,12 +163,20 @@ describe('workspace attachments', () => {
     ).toEqual([pr(7)])
   })
   it('selects a legacy review exclusively without losing other provider references', () => {
-    const mr: WorkspaceAttachment = { provider: 'gitlab', type: 'mr', number: 20 }
+    const mr: WorkspaceAttachment = {
+      provider: 'gitlab',
+      type: 'mr',
+      number: 20
+    }
     const updated = normalizeWorkspaceAttachmentUpdate(
       { linkedPR: 7, linkedItems: [pr(7)] },
       { linkedGitLabMR: 20 }
     )
-    expect(updated).toMatchObject({ linkedPR: null, linkedGitLabMR: 20, linkedItems: [pr(7), mr] })
+    expect(updated).toMatchObject({
+      linkedPR: null,
+      linkedGitLabMR: 20,
+      linkedItems: [pr(7), mr]
+    })
   })
 
   it('unlinks only the selected rich source when numbers collide and preserves ambiguous sources', () => {
@@ -194,7 +223,11 @@ describe('workspace attachments', () => {
     expect(result.linkedItems).toEqual([pr(3), pr(4)])
     expect(result).not.toHaveProperty('linkedItemsBase')
     expect(
-      WorktreeSet.parse({ worktree: 'wt', linkedItems: [pr(4)], linkedItemsBase: [pr(1)] })
+      WorktreeSet.parse({
+        worktree: 'wt',
+        linkedItems: [pr(4)],
+        linkedItemsBase: [pr(1)]
+      })
     ).toHaveProperty('linkedItemsBase', [pr(1)])
     expect(
       FolderWorkspaceUpdate.parse({
@@ -210,7 +243,10 @@ describe('workspace attachments', () => {
     const c = { kind: 'observed' as const, tabId: 'c' }
     const result = normalizeWorkspaceAttachmentUpdate(
       { linkedItems: [{ ...pr(1), origins: [a, b] }] },
-      { linkedItemsBase: [{ ...pr(1), origins: [a] }], linkedItems: [{ ...pr(1), origins: [c] }] }
+      {
+        linkedItemsBase: [{ ...pr(1), origins: [a] }],
+        linkedItems: [{ ...pr(1), origins: [c] }]
+      }
     )
     expect(result.linkedItems?.[0].origins).toEqual([b, c])
   })
@@ -246,7 +282,10 @@ describe('workspace attachments', () => {
         linkedItems: [{ ...pr(1), title: 'Old title', origins: [a] }]
       }
     )
-    expect(result.linkedItems?.[0]).toMatchObject({ title: 'Fresh title', origins: [a] })
+    expect(result.linkedItems?.[0]).toMatchObject({
+      title: 'Fresh title',
+      origins: [a]
+    })
   })
   it('removes a reference enriched after the edit began without removing ambiguous sources', () => {
     const enriched = { ...pr(7), url: 'https://github.com/a/repo/pull/7' }
@@ -272,7 +311,12 @@ describe('workspace attachments', () => {
         { ...pr(7), url: 'https://github.com/a/repo/pull/7' }
       ])
     ).toEqual([
-      { ...pr(7), title: 'Seven', origins: [origin], url: 'https://github.com/a/repo/pull/7' }
+      {
+        ...pr(7),
+        title: 'Seven',
+        origins: [origin],
+        url: 'https://github.com/a/repo/pull/7'
+      }
     ])
   })
 
@@ -283,7 +327,10 @@ describe('workspace attachments', () => {
     expect(
       normalizeWorkspaceAttachmentUpdate(
         { linkedItems: [{ ...enriched, origins: [first] }] },
-        { linkedItemsBase: [pr(7)], linkedItems: [{ ...enriched, origins: [second] }] }
+        {
+          linkedItemsBase: [pr(7)],
+          linkedItems: [{ ...enriched, origins: [second] }]
+        }
       ).linkedItems
     ).toEqual([{ ...enriched, origins: [first, second] }])
   })
@@ -345,7 +392,11 @@ describe('workspace attachments', () => {
     expect(normalizeWorkspaceAttachments(normalized)).toEqual(normalized)
   })
   it('keeps an explicitly empty selection when incompatible references remain', () => {
-    const mr: WorkspaceAttachment = { provider: 'gitlab', type: 'mr', number: 2 }
+    const mr: WorkspaceAttachment = {
+      provider: 'gitlab',
+      type: 'mr',
+      number: 2
+    }
     const result = normalizeWorkspaceAttachmentUpdate(
       { linkedItems: [pr(1), mr], linkedPR: 1 },
       {
@@ -367,14 +418,26 @@ describe('workspace attachments', () => {
 
 describe('workspaceAttachmentReferenceLabel', () => {
   it('reads a reference as the desktop card and the phone details both show it', () => {
-    expect(workspaceAttachmentReferenceLabel({ provider: 'github', type: 'pr', number: 12 })).toBe(
-      'PR #12'
-    )
-    expect(workspaceAttachmentReferenceLabel({ provider: 'gitlab', type: 'mr', number: 3 })).toBe(
-      'MR !3'
-    )
     expect(
-      workspaceAttachmentReferenceLabel({ provider: 'github', type: 'issue', number: 4 })
+      workspaceAttachmentReferenceLabel({
+        provider: 'github',
+        type: 'pr',
+        number: 12
+      })
+    ).toBe('PR #12')
+    expect(
+      workspaceAttachmentReferenceLabel({
+        provider: 'gitlab',
+        type: 'mr',
+        number: 3
+      })
+    ).toBe('MR !3')
+    expect(
+      workspaceAttachmentReferenceLabel({
+        provider: 'github',
+        type: 'issue',
+        number: 4
+      })
     ).toBe('Issue #4')
     expect(
       workspaceAttachmentReferenceLabel({
@@ -385,7 +448,19 @@ describe('workspaceAttachmentReferenceLabel', () => {
       })
     ).toBe('ORCA-4')
     expect(
-      workspaceAttachmentReferenceLabel({ provider: 'linear', type: 'issue', number: 9 })
+      workspaceAttachmentReferenceLabel({
+        provider: 'kerjan',
+        type: 'issue',
+        number: 0,
+        kerjanIdentifier: 'OMX-40'
+      })
+    ).toBe('OMX-40')
+    expect(
+      workspaceAttachmentReferenceLabel({
+        provider: 'linear',
+        type: 'issue',
+        number: 9
+      })
     ).toBe('#9')
     expect(
       workspaceAttachmentReferenceLabel(

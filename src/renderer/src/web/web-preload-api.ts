@@ -93,6 +93,7 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     hostedReview: createRuntimeNamespaceApi('hostedReview'),
     linear: createRuntimeNamespaceApi('linear'),
     jira: createWebJiraApi(),
+    kerjan: createRuntimeNamespaceApi('kerjan'),
     hooks: createHooksApi(),
     stats: {
       getSummary: async () =>

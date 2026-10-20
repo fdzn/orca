@@ -23,6 +23,7 @@ export function normalizeWorkspaceAttachment(value: unknown): WorkspaceAttachmen
     provider !== 'gitlab' &&
     provider !== 'linear' &&
     provider !== 'jira' &&
+    provider !== 'kerjan' &&
     provider !== 'bitbucket' &&
     provider !== 'azure-devops' &&
     provider !== 'gitea'
@@ -33,7 +34,8 @@ export function normalizeWorkspaceAttachment(value: unknown): WorkspaceAttachmen
   if (type !== 'issue' && type !== 'pr' && type !== 'mr') {
     return null
   }
-  if ((provider === 'linear' || provider === 'jira') && type !== 'issue') {
+  const keyedProvider = provider === 'linear' || provider === 'jira' || provider === 'kerjan'
+  if (keyedProvider && type !== 'issue') {
     return null
   }
   if (type === 'mr' && provider !== 'gitlab') {
@@ -43,8 +45,11 @@ export function normalizeWorkspaceAttachment(value: unknown): WorkspaceAttachmen
     return null
   }
   const identifier =
-    nonEmpty(raw.identifier) ?? nonEmpty(raw.linearIdentifier) ?? nonEmpty(raw.jiraIdentifier)
-  if (raw.number === 0 && (!identifier || (provider !== 'linear' && provider !== 'jira'))) {
+    nonEmpty(raw.identifier) ??
+    nonEmpty(raw.linearIdentifier) ??
+    nonEmpty(raw.jiraIdentifier) ??
+    nonEmpty(raw.kerjanIdentifier)
+  if (raw.number === 0 && (!identifier || !keyedProvider)) {
     return null
   }
   if (raw.url !== undefined) {
@@ -70,6 +75,7 @@ export function normalizeWorkspaceAttachment(value: unknown): WorkspaceAttachmen
     ...(nonEmpty(raw.repoId) ? { repoId: nonEmpty(raw.repoId) } : {}),
     ...(nonEmpty(raw.linearIdentifier) ? { linearIdentifier: nonEmpty(raw.linearIdentifier) } : {}),
     ...(nonEmpty(raw.jiraIdentifier) ? { jiraIdentifier: nonEmpty(raw.jiraIdentifier) } : {}),
+    ...(nonEmpty(raw.kerjanIdentifier) ? { kerjanIdentifier: nonEmpty(raw.kerjanIdentifier) } : {}),
     ...(nonEmpty(raw.linearWorkspaceId)
       ? { linearWorkspaceId: nonEmpty(raw.linearWorkspaceId) }
       : {}),
@@ -81,12 +87,13 @@ export function normalizeWorkspaceAttachment(value: unknown): WorkspaceAttachmen
   const linkedItem = normalizeWorkspaceLinkedItem({
     ...item,
     title: item.title ?? identifier ?? String(item.number),
-    jiraIdentifier: item.jiraIdentifier ?? (provider === 'jira' ? identifier : undefined)
+    jiraIdentifier: item.jiraIdentifier ?? (provider === 'jira' ? identifier : undefined),
+    kerjanIdentifier: item.kerjanIdentifier ?? (provider === 'kerjan' ? identifier : undefined)
   })
   if (
     context &&
     context.provider === provider &&
-    (provider !== 'jira' ||
+    ((provider !== 'jira' && provider !== 'kerjan') ||
       (linkedItem && isWorkspaceLinkedItemSourceContextMatch(linkedItem, context)))
   ) {
     item.taskSourceContext = context
@@ -98,8 +105,12 @@ function attachmentIdentity(item: WorkspaceAttachment): string {
   return JSON.stringify([
     item.provider,
     item.type,
-    item.provider === 'linear' || item.provider === 'jira'
-      ? (item.identifier ?? item.linearIdentifier ?? item.jiraIdentifier ?? item.number)
+    item.provider === 'linear' || item.provider === 'jira' || item.provider === 'kerjan'
+      ? (item.identifier ??
+        item.linearIdentifier ??
+        item.jiraIdentifier ??
+        item.kerjanIdentifier ??
+        item.number)
       : item.number
   ])
 }
@@ -125,7 +136,7 @@ export function getWorkspaceAttachmentUrlScope(item: WorkspaceAttachment): strin
       url.origin +
       url.pathname
         .replace(
-          /\/(?:pull|pulls|issues|merge_requests|pull-requests|pullrequest|browse|issue)\/[^/]+(?:\/.*)?$/,
+          /\/(?:pull|pulls|issues|merge_requests|pull-requests|pullrequest|browse|issue|ticket)\/[^/]+(?:\/.*)?$/,
           ''
         )
         .replace(/\/-$/, '')
@@ -291,6 +302,8 @@ export function toWorkspaceLinkedItem(
     ...item,
     linearIdentifier:
       item.linearIdentifier ?? (item.provider === 'linear' ? item.identifier : undefined),
-    jiraIdentifier: item.jiraIdentifier ?? (item.provider === 'jira' ? item.identifier : undefined)
+    jiraIdentifier: item.jiraIdentifier ?? (item.provider === 'jira' ? item.identifier : undefined),
+    kerjanIdentifier:
+      item.kerjanIdentifier ?? (item.provider === 'kerjan' ? item.identifier : undefined)
   })
 }

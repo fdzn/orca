@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { JiraConnectDialog } from '@/components/jira-connect-dialog'
+import { KerjanConnectDialog } from '@/components/kerjan-connect-dialog'
 import { Button } from '@/components/ui/button'
 import { TaskSourceShowInTasksStep } from './TaskSourceShowInTasksStep'
 import { TaskSourceStepRow } from './TaskSourceStepRow'
@@ -78,8 +79,25 @@ export function CodeHostSetupSteps(
   )
 }
 
-export function JiraSetupSteps(
-  props: ConnectStepProps & { onConnected: () => void; onOpenIntegrations: () => void }
+type DialogConnectSetupStepsProps = ConnectStepProps & {
+  onConnected: () => void
+  onOpenIntegrations: () => void
+}
+
+// Shared by trackers whose credentials are entered in an in-app connect dialog.
+function DialogConnectSetupSteps(
+  props: DialogConnectSetupStepsProps & {
+    providerLabel: string
+    title: string
+    description: string
+    connectLabel: string
+    manageLabel: string
+    renderDialog: (dialog: {
+      open: boolean
+      onOpenChange: (open: boolean) => void
+      onConnected: () => void
+    }) => React.ReactNode
+  }
 ): React.JSX.Element {
   const [dialogOpen, setDialogOpen] = useState(false)
 
@@ -89,11 +107,8 @@ export function JiraSetupSteps(
         <TaskSourceStepRow
           index={1}
           state={getConnectStepState(props)}
-          title={translate('auto.components.settings.TasksPane.connectJiraTitle', 'Connect Jira')}
-          description={translate(
-            'auto.components.settings.TasksPane.connectJiraDescription',
-            'Add a Jira Cloud site or self-hosted instance with an API token or PAT.'
-          )}
+          title={props.title}
+          description={props.description}
           action={
             <Button
               type="button"
@@ -101,25 +116,57 @@ export function JiraSetupSteps(
               variant={props.connected ? 'outline' : 'default'}
               onClick={props.connected ? props.onOpenIntegrations : () => setDialogOpen(true)}
             >
-              {props.connected
-                ? translate('auto.components.settings.TasksPane.manageJira', 'Manage keys')
-                : translate('auto.components.settings.TasksPane.addJira', 'Add Jira access')}
+              {props.connected ? props.manageLabel : props.connectLabel}
             </Button>
           }
         />
         <TaskSourceShowInTasksStep
           index={2}
-          providerLabel={translate('auto.components.settings.TasksPane.6b23a34f6d', 'Jira')}
+          providerLabel={props.providerLabel}
           visible={props.visible}
           canHide={props.canHide}
           onToggleVisible={props.onToggleVisible}
         />
       </ol>
-      <JiraConnectDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onConnected={props.onConnected}
-      />
+      {props.renderDialog({
+        open: dialogOpen,
+        onOpenChange: setDialogOpen,
+        onConnected: props.onConnected
+      })}
     </>
+  )
+}
+
+export function JiraSetupSteps(props: DialogConnectSetupStepsProps): React.JSX.Element {
+  return (
+    <DialogConnectSetupSteps
+      {...props}
+      providerLabel={translate('auto.components.settings.TasksPane.6b23a34f6d', 'Jira')}
+      title={translate('auto.components.settings.TasksPane.connectJiraTitle', 'Connect Jira')}
+      description={translate(
+        'auto.components.settings.TasksPane.connectJiraDescription',
+        'Add a Jira Cloud site or self-hosted instance with an API token or PAT.'
+      )}
+      connectLabel={translate('auto.components.settings.TasksPane.addJira', 'Add Jira access')}
+      manageLabel={translate('auto.components.settings.TasksPane.manageJira', 'Manage keys')}
+      renderDialog={(dialog) => <JiraConnectDialog {...dialog} />}
+    />
+  )
+}
+
+export function KerjanSetupSteps(props: DialogConnectSetupStepsProps): React.JSX.Element {
+  return (
+    <DialogConnectSetupSteps
+      {...props}
+      providerLabel={translate('auto.components.settings.TasksPane.kerjanLabel', 'Kerjan')}
+      title={translate('auto.components.settings.TasksPane.connectKerjanTitle', 'Connect Kerjan')}
+      description={translate(
+        'auto.components.settings.TasksPane.connectKerjanDescription',
+        'Add your Kerjan site URL and a personal token from your Kerjan profile.'
+      )}
+      connectLabel={translate('auto.components.settings.TasksPane.addKerjan', 'Add Kerjan access')}
+      manageLabel={translate('auto.components.settings.TasksPane.manageKerjan', 'Manage token')}
+      renderDialog={(dialog) => <KerjanConnectDialog {...dialog} />}
+    />
   )
 }

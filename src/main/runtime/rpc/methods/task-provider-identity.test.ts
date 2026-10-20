@@ -7,7 +7,12 @@ import {
 import type { TaskProviderIdentity as ProviderIdentity } from '../../../../shared/task-source-context'
 
 const identities = [
-  { provider: 'github', owner: 'Acme', repo: 'Orca', host: 'github.example.com' },
+  {
+    provider: 'github',
+    owner: 'Acme',
+    repo: 'Orca',
+    host: 'github.example.com'
+  },
   {
     provider: 'gitlab',
     projectId: '123',
@@ -22,7 +27,17 @@ const identities = [
     teamId: 'team',
     teamKey: 'ENG'
   },
-  { provider: 'jira', siteId: 'site', siteUrl: 'https://acme.atlassian.net', projectKey: 'ENG' }
+  {
+    provider: 'jira',
+    siteId: 'site',
+    siteUrl: 'https://acme.atlassian.net',
+    projectKey: 'ENG'
+  },
+  {
+    provider: 'kerjan',
+    siteUrl: 'https://kerjan.example.com',
+    workspaceCode: 'OMX'
+  }
 ] satisfies ProviderIdentity[]
 
 describe('task provider identity RPC validation', () => {
@@ -50,17 +65,25 @@ describe('task provider identity RPC validation', () => {
     }
   }
 
-  it.each(['gitlab', 'linear', 'jira'])('keeps %s fields optional and nullable', (provider) => {
-    expect(TaskProviderIdentity.parse({ provider })).toEqual({ provider })
-    const full = identities.find((identity) => identity.provider === provider)!
-    const nullable = Object.fromEntries(
-      Object.keys(full).map((key) => [key, key === 'provider' ? provider : null])
-    )
-    expect(TaskProviderIdentity.parse(nullable)).toEqual(nullable)
-  })
+  it.each(['gitlab', 'linear', 'jira', 'kerjan'])(
+    'keeps %s fields optional and nullable',
+    (provider) => {
+      expect(TaskProviderIdentity.parse({ provider })).toEqual({ provider })
+      const full = identities.find((identity) => identity.provider === provider)!
+      const nullable = Object.fromEntries(
+        Object.keys(full).map((key) => [key, key === 'provider' ? provider : null])
+      )
+      expect(TaskProviderIdentity.parse(nullable)).toEqual(nullable)
+    }
+  )
 
   it('preserves unknown fields and never infers GitHub from owner/repo', () => {
-    const identity = { provider: 'gitlab', owner: 'acme', repo: 'orca', futureField: 'value' }
+    const identity = {
+      provider: 'gitlab',
+      owner: 'acme',
+      repo: 'orca',
+      futureField: 'value'
+    }
     expect(TaskProviderIdentity.parse(identity)).toEqual(identity)
   })
 
@@ -75,7 +98,12 @@ describe('task provider identity RPC validation', () => {
     expect(TaskProviderIdentity.parse(undefined)).toBeUndefined()
     expect(TaskProviderIdentity.parse(null)).toBeNull()
     for (const hostId of ['local', 'ssh:host']) {
-      const context = { kind: 'task-source', provider: 'github', projectId: 'folder', hostId }
+      const context = {
+        kind: 'task-source',
+        provider: 'github',
+        projectId: 'folder',
+        hostId
+      }
       expect(TaskSourceContext.parse(context)).not.toHaveProperty('providerIdentity')
       expect(TaskSourceContext.parse({ ...context, providerIdentity: null })).toEqual({
         ...context,
@@ -89,8 +117,10 @@ describe('task provider identity RPC validation', () => {
       'sourceContext'
     )
     expect(
-      AutomationUpdate.parse({ id: 'automation', updates: { sourceContext: null } }).updates
-        .sourceContext
+      AutomationUpdate.parse({
+        id: 'automation',
+        updates: { sourceContext: null }
+      }).updates.sourceContext
     ).toBeNull()
     expect(
       AutomationUpdate.safeParse({
@@ -113,20 +143,31 @@ describe('github identity blank fields', () => {
   // The normalizer treats a blank owner or repo as no identity, so the schema must agree.
   it.each(['', '   ', '\t'])('rejects a blank owner %j', (owner) => {
     expect(
-      TaskProviderIdentity.safeParse({ provider: 'github', owner, repo: 'orca' }).success
+      TaskProviderIdentity.safeParse({
+        provider: 'github',
+        owner,
+        repo: 'orca'
+      }).success
     ).toBe(false)
   })
 
   it.each(['', '  '])('rejects a blank repo %j', (repo) => {
     expect(
-      TaskProviderIdentity.safeParse({ provider: 'github', owner: 'stablyai', repo }).success
+      TaskProviderIdentity.safeParse({
+        provider: 'github',
+        owner: 'stablyai',
+        repo
+      }).success
     ).toBe(false)
   })
 
   it('still accepts a populated identity', () => {
     expect(
-      TaskProviderIdentity.safeParse({ provider: 'github', owner: 'stablyai', repo: 'orca' })
-        .success
+      TaskProviderIdentity.safeParse({
+        provider: 'github',
+        owner: 'stablyai',
+        repo: 'orca'
+      }).success
     ).toBe(true)
   })
 

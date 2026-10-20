@@ -51,6 +51,7 @@ export function useSmartWorkspaceNameFieldActions(
     onGitHubItemSelect,
     onGitLabItemSelect,
     onJiraIssueSelect,
+    onKerjanIssueSelect,
     onLinearIssueSelect,
     onValueChange,
     setOpen,
@@ -100,6 +101,18 @@ export function useSmartWorkspaceNameFieldActions(
           return
         }
         onJiraIssueSelect?.(row.issue, sourceContext)
+      } else if (row.kind === 'kerjan') {
+        const sourceContext = resolveRow(row)?.taskSourceContext
+        if (!sourceContext || !onKerjanIssueSelect) {
+          toast.error(
+            translate(
+              'auto.components.new.workspace.SmartWorkspaceNameField.kerjanSelectBindFailed',
+              'Couldn’t link this Kerjan ticket. Reconnect Kerjan, then try again.'
+            )
+          )
+          return
+        }
+        onKerjanIssueSelect(row.issue, sourceContext)
       } else {
         onLinearIssueSelect(row.issue)
       }
@@ -111,6 +124,7 @@ export function useSmartWorkspaceNameFieldActions(
       onGitHubItemSelect,
       onGitLabItemSelect,
       onJiraIssueSelect,
+      onKerjanIssueSelect,
       onLinearIssueSelect,
       onValueChange,
       setOpen,
