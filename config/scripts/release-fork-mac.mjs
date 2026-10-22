@@ -1,5 +1,6 @@
 // Builds the macOS app and publishes it as a GitHub release on the fork, where the in-app updater looks.
 import { execFileSync } from 'node:child_process'
+import { readdirSync } from 'node:fs'
 
 const FORK_REPO = 'fdzn/orca'
 const UPSTREAM_REPO = 'stablyai/orca'
@@ -64,6 +65,28 @@ run([
   '--publish',
   'always'
 ])
+
+// Why: the builder's GitHub upload can drop an asset without failing; re-upload whatever is missing.
+const uploaded = read('gh', [
+  'release',
+  'view',
+  tag,
+  '-R',
+  FORK_REPO,
+  '--json',
+  'assets',
+  '-q',
+  '.assets[].name'
+]).split('\n')
+const missing = readdirSync('dist')
+  .filter((name) => /(\.dmg|\.zip|\.blockmap|^latest-mac\.yml)$/.test(name))
+  .filter((name) => !uploaded.includes(name))
+  .map((name) => `dist/${name}`)
+if (missing.length > 0) {
+  execFileSync('gh', ['release', 'upload', tag, ...missing, '-R', FORK_REPO, '--clobber'], {
+    stdio: 'inherit'
+  })
+}
 
 // Why: the builder publishes a draft; the updater only sees /releases/latest once it is public.
 execFileSync('gh', ['release', 'edit', tag, '-R', FORK_REPO, '--draft=false', '--latest'], {
