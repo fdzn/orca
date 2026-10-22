@@ -12,7 +12,8 @@ export const KERJAN_ASSIGNEE_ME = 'me'
 
 export type KerjanTaskListFilterState = {
   kind: KerjanTicketKind | null
-  status: KerjanTicketStatus | null
+  /** Empty means every status; matched client-side so toggling never refetches. */
+  statuses: KerjanTicketStatus[]
   taskType: KerjanTaskType | null
   sprintId: string | null
   /** A member id, or KERJAN_ASSIGNEE_ME for the connected viewer. */
@@ -20,12 +21,13 @@ export type KerjanTaskListFilterState = {
   query: string
 }
 
+// Why: open on the viewer's own open Tasks, like Kerjan's "My Task" page.
 export const DEFAULT_KERJAN_TASK_LIST_FILTERS: KerjanTaskListFilterState = {
-  kind: null,
-  status: null,
+  kind: 'task',
+  statuses: ['todo', 'in_progress'],
   taskType: null,
   sprintId: null,
-  assignee: null,
+  assignee: KERJAN_ASSIGNEE_ME,
   query: ''
 }
 
@@ -40,7 +42,6 @@ export function buildKerjanIssueListFilters(
   }
   return {
     ...(state.kind ? { kind: state.kind } : {}),
-    ...(state.status ? { status: state.status } : {}),
     // Why: task_type only describes Tasks, so it is meaningless next to an Epic/Story kind.
     ...(state.taskType && (state.kind === null || state.kind === 'task')
       ? { taskType: state.taskType }
@@ -51,12 +52,13 @@ export function buildKerjanIssueListFilters(
 }
 
 export function hasActiveKerjanTaskListFilters(state: KerjanTaskListFilterState): boolean {
+  const defaults = DEFAULT_KERJAN_TASK_LIST_FILTERS
   return (
-    state.kind !== null ||
-    state.status !== null ||
-    state.taskType !== null ||
-    state.sprintId !== null ||
-    state.assignee !== null ||
+    state.kind !== defaults.kind ||
+    [...state.statuses].sort().join() !== [...defaults.statuses].sort().join() ||
+    state.taskType !== defaults.taskType ||
+    state.sprintId !== defaults.sprintId ||
+    state.assignee !== defaults.assignee ||
     state.query.trim().length > 0
   )
 }

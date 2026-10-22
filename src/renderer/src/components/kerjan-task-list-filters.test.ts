@@ -19,24 +19,38 @@ const workspace = (code: string): KerjanWorkspace => ({
   readOnly: false
 })
 
+const NO_FILTERS = {
+  ...DEFAULT_KERJAN_TASK_LIST_FILTERS,
+  kind: null,
+  assignee: null,
+  statuses: []
+}
+
 describe('Kerjan task list filters', () => {
+  it("defaults to the viewer's own Tasks", () => {
+    expect(buildKerjanIssueListFilters(DEFAULT_KERJAN_TASK_LIST_FILTERS, 'u1')).toEqual({
+      kind: 'task',
+      assigneeId: 'u1'
+    })
+  })
+
   it('sends only the set server filters and leaves text search client-side', () => {
     expect(
       buildKerjanIssueListFilters(
-        { ...DEFAULT_KERJAN_TASK_LIST_FILTERS, status: 'in_progress', sprintId: 's1', query: 'x' },
+        { ...NO_FILTERS, statuses: ['in_progress'], sprintId: 's1', query: 'x' },
         'u1'
       )
-    ).toEqual({ status: 'in_progress', sprintId: 's1' })
+    ).toEqual({ sprintId: 's1' })
   })
 
   it('resolves "me" to the viewer and waits while the viewer is unknown', () => {
-    const mine = { ...DEFAULT_KERJAN_TASK_LIST_FILTERS, assignee: KERJAN_ASSIGNEE_ME }
+    const mine = { ...NO_FILTERS, assignee: KERJAN_ASSIGNEE_ME }
     expect(buildKerjanIssueListFilters(mine, 'u1')).toEqual({ assigneeId: 'u1' })
     expect(buildKerjanIssueListFilters(mine, null)).toBeNull()
   })
 
   it('drops the task type when the kind is not Task', () => {
-    const base = { ...DEFAULT_KERJAN_TASK_LIST_FILTERS, taskType: 'bug' as const }
+    const base = { ...NO_FILTERS, taskType: 'bug' as const }
     expect(buildKerjanIssueListFilters({ ...base, kind: 'story' }, null)).toEqual({ kind: 'story' })
     expect(buildKerjanIssueListFilters({ ...base, kind: 'task' }, null)).toEqual({
       kind: 'task',
@@ -50,9 +64,7 @@ describe('Kerjan task list filters', () => {
     expect(
       hasActiveKerjanTaskListFilters({ ...DEFAULT_KERJAN_TASK_LIST_FILTERS, query: '  ' })
     ).toBe(false)
-    expect(
-      hasActiveKerjanTaskListFilters({ ...DEFAULT_KERJAN_TASK_LIST_FILTERS, kind: 'epic' })
-    ).toBe(true)
+    expect(hasActiveKerjanTaskListFilters(NO_FILTERS)).toBe(true)
   })
 
   it('keeps a stored workspace pick that still exists, else falls back to the first', () => {

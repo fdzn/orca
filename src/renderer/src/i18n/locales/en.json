@@ -18327,7 +18327,8 @@
         "unassigned": "Unassigned",
         "columnKey": "Key",
         "columnTitle": "Title",
-        "columnType": "Type"
+        "columnType": "Type",
+        "statusCount": "{{value0}} statuses"
       },
       "KerjanTicketSheet": {
         "statusDerived": "Status is derived from this ticket’s Tasks.",
@@ -18364,7 +18365,9 @@
         "unknown": "Unknown",
         "noComments": "No comments yet.",
         "history": "History",
-        "changed": "changed the ticket"
+        "changed": "changed the ticket",
+        "notFound": "Kerjan ticket {{value0}} was not found.",
+        "loadFailed": "Failed to load the Kerjan ticket."
       }
     },
     "i18n": {

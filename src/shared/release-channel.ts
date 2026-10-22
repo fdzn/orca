@@ -24,7 +24,10 @@ export const RELEASE_CHANNEL_LABELS: Readonly<Record<ReleaseChannel, string>> = 
 export const HOURLY_RELEASE_REPO = 'stablyai/orca-hourly'
 export const DAILY_RELEASE_REPO = 'stablyai/orca-daily'
 export const ADHOC_RELEASE_REPO = 'stablyai/orca-adhoc'
-export const MAIN_RELEASE_REPO = 'stablyai/orca'
+// Why: this fork ships its own builds, so stable/RC updates come from the fork's releases.
+export const MAIN_RELEASE_REPO = 'fdzn/orca'
+// Why: release assets the fork does not publish (agent-state rules) still come from upstream.
+export const UPSTREAM_RELEASE_REPO = 'stablyai/orca'
 
 /** The dev channels, each published to its own repo rather than the main one. */
 const DEDICATED_REPO_CHANNELS = ['hourly', 'daily', 'adhoc'] as const

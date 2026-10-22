@@ -131,15 +131,15 @@ export function useTaskPageKerjanList(args: {
     }
   }, [active, connected, listKerjanMembers, listKerjanSprints, sourceContext, workspaceCode])
 
-  const { kind, status, taskType, sprintId, assignee } = filters
+  const { kind, taskType, sprintId, assignee } = filters
   // Why: text search is client-side, so typing must not rebuild these and refetch.
   const serverFilters = useMemo(
     () =>
       buildKerjanIssueListFilters(
-        { kind, status, taskType, sprintId, assignee, query: '' },
+        { kind, taskType, sprintId, assignee, statuses: [], query: '' },
         viewerId
       ),
-    [assignee, kind, sprintId, status, taskType, viewerId]
+    [assignee, kind, sprintId, taskType, viewerId]
   )
   useEffect(() => {
     if (!active || !connected || !workspaceCode || !serverFilters) {
@@ -174,8 +174,14 @@ export function useTaskPageKerjanList(args: {
   ])
 
   const displayedIssues = useMemo(
-    () => applyKerjanClientFilters(issues.data, { query: filters.query }),
-    [filters.query, issues.data]
+    () =>
+      applyKerjanClientFilters(
+        issues.data.filter(
+          (issue) => filters.statuses.length === 0 || filters.statuses.includes(issue.statusKey)
+        ),
+        { query: filters.query }
+      ),
+    [filters.query, filters.statuses, issues.data]
   )
   const memberNames = useMemo(
     () => new Map(members.map((member) => [member.id, member.name])),

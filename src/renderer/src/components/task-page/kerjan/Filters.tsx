@@ -1,7 +1,13 @@
-import { LoaderCircle, RefreshCw, X } from 'lucide-react'
+import { ChevronDown, LoaderCircle, RefreshCw, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Select,
@@ -11,6 +17,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { translate } from '@/i18n/i18n'
+import type { KerjanTicketStatus } from '../../../../../shared/kerjan-types'
 import type { TaskPageKerjanListModel } from '../../use-task-page-kerjan-list'
 import {
   DEFAULT_KERJAN_TASK_LIST_FILTERS,
@@ -61,6 +68,55 @@ function KerjanFilterSelect({
         ))}
       </SelectContent>
     </Select>
+  )
+}
+
+function KerjanStatusFilter({
+  value,
+  onChange
+}: {
+  value: readonly KerjanTicketStatus[]
+  onChange: (statuses: KerjanTicketStatus[]) => void
+}): React.JSX.Element {
+  const options = getKerjanStatusOptions()
+  const summary =
+    value.length === 0
+      ? translate('auto.components.TaskPageKerjan.allStatuses', 'All statuses')
+      : value.length === 1
+        ? (options.find((option) => option.id === value[0])?.label ?? value[0])
+        : translate('auto.components.TaskPageKerjan.statusCount', '{{value0}} statuses', {
+            value0: value.length
+          })
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-36 justify-between"
+          aria-label={translate('auto.components.TaskPageKerjan.status', 'Status')}
+        >
+          <span className="truncate">{summary}</span>
+          <ChevronDown className="opacity-50" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {options.map((option) => (
+          <DropdownMenuCheckboxItem
+            key={option.id}
+            checked={value.includes(option.id)}
+            onSelect={(event) => event.preventDefault()}
+            onCheckedChange={(checked) =>
+              onChange(
+                checked ? [...value, option.id] : value.filter((status) => status !== option.id)
+              )
+            }
+          >
+            {option.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -141,17 +197,7 @@ export function TaskPageKerjanFilters({
             patch({ kind: getKerjanKindOptions().find((option) => option.id === kind)?.id ?? null })
           }
         />
-        <KerjanFilterSelect
-          label={translate('auto.components.TaskPageKerjan.status', 'Status')}
-          allLabel={translate('auto.components.TaskPageKerjan.allStatuses', 'All statuses')}
-          value={filters.status}
-          options={getKerjanStatusOptions()}
-          onChange={(status) =>
-            patch({
-              status: getKerjanStatusOptions().find((option) => option.id === status)?.id ?? null
-            })
-          }
-        />
+        <KerjanStatusFilter value={filters.statuses} onChange={(statuses) => patch({ statuses })} />
         <KerjanFilterSelect
           label={translate('auto.components.TaskPageKerjan.taskType', 'Task type')}
           allLabel={translate('auto.components.TaskPageKerjan.allTaskTypes', 'All task types')}

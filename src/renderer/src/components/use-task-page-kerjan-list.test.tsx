@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { KerjanConnectionStatus, KerjanWorkspace } from '../../../shared/kerjan-types'
 import { KERJAN_SOURCE, makeKerjanIssue } from './kerjan-ticket.test-fixture'
 import { useTaskPageKerjanList } from './use-task-page-kerjan-list'
-import { KERJAN_ASSIGNEE_ME } from './kerjan-task-list-filters'
 
 const mocks = vi.hoisted(() => {
   const state: Record<string, unknown> = {}
@@ -69,7 +68,7 @@ describe('useTaskPageKerjanList', () => {
     expect(store.setKerjanSelectedWorkspaceCode).toHaveBeenCalledWith('OMX')
     expect(store.listKerjanIssues).toHaveBeenCalledWith(
       'OMX',
-      {},
+      { kind: 'task', assigneeId: 'u1' },
       { sourceContext: KERJAN_SOURCE, force: false }
     )
 
@@ -83,19 +82,16 @@ describe('useTaskPageKerjanList', () => {
     expect(listIssues.mock.calls).toHaveLength(calls)
   })
 
-  it('sends "me" as the viewer id and forces only the refresh read', async () => {
+  it("defaults to the viewer's Tasks and forces only the refresh read", async () => {
     const store = mocks.state
     const { result } = renderHook(() =>
       useTaskPageKerjanList({ active: true, sourceContext: KERJAN_SOURCE })
     )
     await waitFor(() => expect(result.current.issues).toHaveLength(2))
-    act(() =>
-      result.current.setFilters((current) => ({ ...current, assignee: KERJAN_ASSIGNEE_ME }))
-    )
     await waitFor(() =>
       expect(store.listKerjanIssues).toHaveBeenLastCalledWith(
         'OMX',
-        { assigneeId: 'u1' },
+        { kind: 'task', assigneeId: 'u1' },
         { sourceContext: KERJAN_SOURCE, force: false }
       )
     )
@@ -103,7 +99,7 @@ describe('useTaskPageKerjanList', () => {
     await waitFor(() =>
       expect(store.listKerjanIssues).toHaveBeenLastCalledWith(
         'OMX',
-        { assigneeId: 'u1' },
+        { kind: 'task', assigneeId: 'u1' },
         { sourceContext: KERJAN_SOURCE, force: true }
       )
     )

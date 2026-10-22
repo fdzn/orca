@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import * as VisuallyHidden from 'radix-ui/visually-hidden'
 import { ArrowRight, ExternalLink, LoaderCircle, RefreshCw, Send, X } from 'lucide-react'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
@@ -73,7 +74,42 @@ export default function KerjanTicketSheet({
   onUse: (issue: KerjanIssue) => void
   onClose: () => void
 }): React.JSX.Element {
-  const detail = useKerjanTicketDetail(issue, sourceContext)
+  // Why: Epic/Story/Task links open in this same sheet; a new route issue drops the jump.
+  const [jump, setJump] = useState<{ from: string; issue: KerjanIssue } | null>(null)
+  const current = jump && jump.from === issue?.key ? jump.issue : issue
+  const fetchKerjanIssue = useAppStore((s) => s.fetchKerjanIssue)
+  const openTicket = (key: string): void => {
+    const from = issue?.key
+    if (!from) {
+      return
+    }
+    void fetchKerjanIssue(key, { sourceContext })
+      .then((next) => {
+        if (!next) {
+          throw new Error(
+            translate(
+              'auto.components.KerjanTicketSheet.notFound',
+              'Kerjan ticket {{value0}} was not found.',
+              {
+                value0: key
+              }
+            )
+          )
+        }
+        setJump({ from, issue: next })
+      })
+      .catch((error: unknown) =>
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : translate(
+                'auto.components.KerjanTicketSheet.loadFailed',
+                'Failed to load the Kerjan ticket.'
+              )
+        )
+      )
+  }
+  const detail = useKerjanTicketDetail(current, sourceContext)
   const viewerId = useAppStore((s) => s.kerjanStatus.viewer?.id ?? null)
   const displayed = detail.displayed
   const canWrite = !detail.readOnly && detail.pendingField === null
@@ -218,6 +254,7 @@ export default function KerjanTicketSheet({
               key={`body:${displayed.key}`}
               detail={detail}
               canWrite={canWrite}
+              onOpenTicket={openTicket}
             />
 
             <KerjanCommentComposer

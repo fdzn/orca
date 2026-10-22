@@ -13,13 +13,23 @@ import { getKerjanStatusLabels, getKerjanTicketTypeLabel } from './kerjan-ticket
 
 const SECTION_LABEL = 'text-2xs font-semibold uppercase tracking-wider text-muted-foreground'
 
-function TicketRefLine({ label, ticket }: { label: string; ticket: KerjanTicketRef }) {
+const TICKET_LINK = 'flex min-w-0 items-center gap-2 rounded-sm text-left text-xs hover:bg-muted/60'
+
+function TicketRefLine({
+  label,
+  ticket,
+  onOpen
+}: {
+  label: string
+  ticket: KerjanTicketRef
+  onOpen: (key: string) => void
+}) {
   return (
-    <div className="flex min-w-0 items-center gap-2 text-xs">
+    <button type="button" className={TICKET_LINK} onClick={() => onOpen(ticket.key)}>
       <span className="shrink-0 text-muted-foreground">{label}</span>
       <span className="shrink-0 font-mono text-muted-foreground">{ticket.key}</span>
       <span className="truncate text-foreground">{ticket.title}</span>
-    </div>
+    </button>
   )
 }
 
@@ -81,10 +91,12 @@ function TicketEditor({
 
 export function KerjanTicketSheetBody({
   detail,
-  canWrite
+  canWrite,
+  onOpenTicket
 }: {
   detail: KerjanTicketDetailModel
   canWrite: boolean
+  onOpenTicket: (key: string) => void
 }): React.JSX.Element | null {
   const [editing, setEditing] = useState(false)
   const displayed = detail.displayed
@@ -108,12 +120,14 @@ export function KerjanTicketSheetBody({
           <TicketRefLine
             label={translate('auto.components.KerjanTicketSheet.epic', 'Epic')}
             ticket={displayed.epic}
+            onOpen={onOpenTicket}
           />
         ) : null}
         {displayed.story ? (
           <TicketRefLine
             label={translate('auto.components.KerjanTicketSheet.story', 'Story')}
             ticket={displayed.story}
+            onOpen={onOpenTicket}
           />
         ) : null}
       </section>
@@ -164,14 +178,20 @@ export function KerjanTicketSheetBody({
           </div>
           <ul className="mt-2 grid gap-1">
             {children.map((child) => (
-              <li key={child.key} className="flex min-w-0 items-center gap-2 text-xs">
-                <span className="shrink-0 font-mono text-muted-foreground">{child.key}</span>
-                <span className="truncate text-foreground">{child.title}</span>
-                {child.status ? (
-                  <span className="ml-auto shrink-0 text-muted-foreground">
-                    {statusLabels[child.status]}
-                  </span>
-                ) : null}
+              <li key={child.key}>
+                <button
+                  type="button"
+                  className={`${TICKET_LINK} w-full`}
+                  onClick={() => onOpenTicket(child.key)}
+                >
+                  <span className="shrink-0 font-mono text-muted-foreground">{child.key}</span>
+                  <span className="truncate text-foreground">{child.title}</span>
+                  {child.status ? (
+                    <span className="ml-auto shrink-0 text-muted-foreground">
+                      {statusLabels[child.status]}
+                    </span>
+                  ) : null}
+                </button>
               </li>
             ))}
           </ul>

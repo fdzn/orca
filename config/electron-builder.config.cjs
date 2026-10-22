@@ -801,7 +801,8 @@ module.exports = {
   npmRebuild: true,
   publish: {
     provider: 'github',
-    owner: 'stablyai',
+    // Why: this fork publishes its own releases; dev channels stay upstream-only.
+    owner: devChannelRepo ? 'stablyai' : 'fdzn',
     repo: devChannelRepo ?? 'orca',
     // Why draft on the main repo: `--publish always` otherwise creates a
     // public GitHub release as soon as the first platform uploads, and
