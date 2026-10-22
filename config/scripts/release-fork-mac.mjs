@@ -40,7 +40,8 @@ const env = {
   GH_TOKEN: process.env.GH_TOKEN || read('gh', ['auth', 'token']),
   ORCA_BUILD_COMMIT: read('git', ['rev-parse', '--short=12', 'HEAD']),
   // Why: the builder config stamps this as the packaged version (no notarized release env needed).
-  ORCA_LOCAL_BUILD_VERSION: version
+  ORCA_LOCAL_BUILD_VERSION: version,
+  ORCA_MAC_ARCHES: process.arch
 }
 const run = (args) => execFileSync('pnpm', args, { stdio: 'inherit', env })
 

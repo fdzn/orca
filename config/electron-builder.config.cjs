@@ -110,6 +110,10 @@ const devChannelRepo = isHourlyChannel
       ? 'orca-adhoc'
       : null
 const appId = 'com.stablyai.orca'
+// Why: fork releases built with only Command Line Tools can package the host arch alone.
+const macArches = process.env.ORCA_MAC_ARCHES
+  ? process.env.ORCA_MAC_ARCHES.split(',')
+  : ['x64', 'arm64']
 const featureWallResources = {
   from: 'resources/onboarding/feature-wall',
   to: 'onboarding/feature-wall'
@@ -683,11 +687,11 @@ module.exports = {
     target: [
       {
         target: 'dmg',
-        arch: ['x64', 'arm64']
+        arch: macArches
       },
       {
         target: 'zip',
-        arch: ['x64', 'arm64']
+        arch: macArches
       }
     ]
   },
