@@ -1,6 +1,6 @@
 // Builds the macOS app and publishes it as a GitHub release on the fork, where the in-app updater looks.
 import { execFileSync } from 'node:child_process'
-import { readdirSync } from 'node:fs'
+import { readdirSync, rmSync } from 'node:fs'
 
 const FORK_REPO = 'fdzn/orca'
 const UPSTREAM_REPO = 'stablyai/orca'
@@ -46,6 +46,8 @@ const env = {
 }
 const run = (args) => execFileSync('pnpm', args, { stdio: 'inherit', env })
 
+// Why: stale artifacts from an older version would otherwise be re-uploaded as missing assets.
+rmSync('dist', { recursive: true, force: true })
 run(['run', 'build:desktop'])
 // Why: Command Line Tools cannot link universal Swift helpers, so the fork ships the host arch only.
 for (const helper of ['computer', 'keyboard-layout', 'notification-status']) {
