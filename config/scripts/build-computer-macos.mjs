@@ -28,8 +28,22 @@ chmodSync(binaryPath, 0o755)
 createHelperApp()
 
 function buildUniversalBinary() {
-  const builtBinaries = universalTriples.map((triple) => {
-    run('swift', ['build', '-c', 'release', '--package-path', packagePath, '--triple', triple])
+  // Why: Command Line Tools ship arm64-only Swift runtime libs and a SwiftBuild backend that fails to start, so local fork releases build the host arch with the native backend.
+  const singleArch = process.argv.includes('--single-arch')
+  const triples = singleArch
+    ? [`${process.arch === 'x64' ? 'x86_64' : 'arm64'}-apple-macosx`]
+    : universalTriples
+  const builtBinaries = triples.map((triple) => {
+    run('swift', [
+      'build',
+      '-c',
+      'release',
+      '--package-path',
+      packagePath,
+      '--triple',
+      triple,
+      ...(singleArch ? ['--build-system', 'native'] : [])
+    ])
     return path.join(packagePath, '.build', triple, 'release', 'orca-computer-use-macos')
   })
   mkdirSync(path.dirname(binaryPath), { recursive: true })

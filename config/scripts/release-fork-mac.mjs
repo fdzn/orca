@@ -44,21 +44,22 @@ const env = {
 }
 const run = (args) => execFileSync('pnpm', args, { stdio: 'inherit', env })
 
-for (const script of [
-  'build:desktop',
-  'build:computer-macos',
-  'build:keyboard-layout-macos',
-  'build:notification-status-macos',
-  'ensure:electron-runtime'
-]) {
-  run(['run', script])
+run(['run', 'build:desktop'])
+// Why: Command Line Tools cannot link universal Swift helpers, so the fork ships the host arch only.
+for (const helper of ['computer', 'keyboard-layout', 'notification-status']) {
+  execFileSync('node', [`config/scripts/build-${helper}-macos.mjs`, '--single-arch'], {
+    stdio: 'inherit',
+    env
+  })
 }
+run(['run', 'ensure:electron-runtime'])
 run([
   'exec',
   'electron-builder',
   '--config',
   'config/electron-builder.config.cjs',
   '--mac',
+  `--${process.arch}`,
   '--publish',
   'always'
 ])
